@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0E1A" />
+<title>Shevlin Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   SHEVLIN OPERATING SYSTEM  —  design tokens
+   ============================================================ */
+:root{
+  --red:#D41F1F; --red-dk:#B81A1A; --red-soft:rgba(212,31,31,.10);
+  --navy:#0A0E1A; --navy-2:#0C1220; --navy-mid:#0D1422; --navy-card:#111827;
+  --navy-line:#1E2D42; --navy-line-2:#172033;
+  --white:#FFFFFF; --offwhite:#DCE4F0; --grey-lt:#A8B8C8; --grey:#8090A4; --grey-dk:#5C6B82;
+  --green:#22B36B; --green-soft:rgba(34,179,107,.12);
+  --amber:#E0A52B; --amber-soft:rgba(224,165,43,.12);
+  --teal:#2AA6E0;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --disp:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;
+  --r:14px; --r-sm:10px;
+  --shadow:0 24px 60px -28px rgba(0,0,0,.8);
+  --glass:rgba(17,24,39,.66);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--navy); color:var(--white);
+  font-family:var(--body); font-size:15px; line-height:1.6;
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+/* atmospheric backdrop */
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(820px 620px at 88% -8%, rgba(212,31,31,.10), transparent 60%),
+    radial-gradient(700px 600px at -6% 12%, rgba(42,166,224,.06), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(212,31,31,.05), transparent 60%);
+}
+body::after{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(circle at 50% 0,#000,transparent 78%);
+          mask-image:radial-gradient(circle at 50% 0,#000,transparent 78%);
+}
+.app-root{position:relative; z-index:1;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+input,select,textarea{font-family:inherit;}
+::selection{background:var(--red);color:#fff;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--navy-line);border-radius:8px;border:2px solid var(--navy);}
+::-webkit-scrollbar-thumb:hover{background:#2a3a54;}
+
+/* shared bits */
+.mark{flex:none;}
+.eyebrow{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--red);display:inline-flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:22px;height:2px;background:var(--red);}
+.muted{color:var(--grey);}
+.tnum{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--disp);font-weight:700;font-size:13.5px;letter-spacing:.1em;text-transform:uppercase;padding:12px 22px;border-radius:var(--r-sm);transition:.18s;white-space:nowrap;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:var(--red-dk);transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(--offwhite);border:1px solid var(--navy-line);}
+.btn-ghost:hover{border-color:#33445f;background:rgba(255,255,255,.07);}
+.btn-sm{padding:8px 14px;font-size:12px;letter-spacing:.08em;}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+/* flags / pills */
+.flag{display:inline-flex;align-items:center;gap:7px;font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:4px 11px 4px 9px;border-radius:999px;border:1px solid;}
+.flag .dot{width:7px;height:7px;border-radius:50%;}
+.flag.green{color:#7fe3b0;border-color:rgba(34,179,107,.4);background:var(--green-soft);}
+.flag.green .dot{background:var(--green);box-shadow:0 0 8px var(--green);}
+.flag.amber{color:#f2cf86;border-color:rgba(224,165,43,.4);background:var(--amber-soft);}
+.flag.amber .dot{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.flag.red{color:#f3a3a3;border-color:rgba(212,31,31,.4);background:var(--red-soft);}
+.flag.red .dot{background:var(--red);box-shadow:0 0 8px var(--red);}
+.flag.lvl{color:var(--grey-lt);border-color:var(--navy-line);background:rgba(255,255,255,.03);}
+.flag.lvl .dot{background:var(--teal);}
+
+/* ===================== LOGIN ===================== */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login{width:100%;max-width:420px;}
+.login-card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--navy-line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.login-top{padding:34px 34px 26px;border-bottom:1px solid var(--navy-line-2);position:relative;}
+.login-top::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.login-brand{display:flex;align-items:center;gap:11px;margin-bottom:24px;}
+.login-brand .name{font-family:var(--body);font-weight:700;font-size:14px;line-height:1.15;letter-spacing:.02em;}
+.login-brand .name span{display:block;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.26em;color:var(--grey);}
+.login-top h1{font-family:var(--disp);font-weight:900;font-size:34px;line-height:.96;text-transform:uppercase;letter-spacing:-.01em;}
+.login-top h1 .red{color:var(--red);}
+.login-top p{color:var(--grey-lt);font-size:13.5px;margin-top:10px;}
+.login-body{padding:26px 34px 30px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);margin-bottom:7px;}
+.field input,.field select,.field textarea{width:100%;background:rgba(10,14,26,.7);border:1px solid var(--navy-line);border-radius:var(--r-sm);color:#fff;font-size:14.5px;padding:12px 14px;transition:.16s;}
+.field textarea{resize:vertical;min-height:78px;line-height:1.55;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft);}
+.field input::placeholder{color:var(--grey-dk);}
+.login-err{color:#f3a3a3;font-size:12.5px;min-height:16px;margin:2px 0 12px;font-weight:500;}
+.login-foot{margin-top:22px;border-top:1px solid var(--navy-line-2);padding-top:18px;}
+.login-foot .lbl{font-family:var(--disp);font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--grey-dk);margin-bottom:11px;}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.quick button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;padding:9px 11px;border:1px solid var(--navy-line);border-radius:var(--r-sm);background:rgba(255,255,255,.02);transition:.15s;}
+.quick button:hover{border-color:var(--red);background:var(--red-soft);}
+.quick .qn{font-weight:600;font-size:12.5px;color:#fff;}
+.quick .qr{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);}
+
+/* ===================== SHELL ===================== */
+.shell{display:none;min-height:100vh;}
+.shell.on{display:grid;grid-template-columns:248px 1fr;}
+.side{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--navy-2),var(--navy));border-right:1px solid var(--navy-line);}
+.side-top{padding:20px 18px 16px;border-bottom:1px solid var(--navy-line-2);}
+.side-brand{display:flex;align-items:center;gap:10px;}
+.side-brand .name{font-family:var(--body);font-weight:700;font-size:13px;line-height:1.1;}
+.side-brand .name span{display:block;font-family:var(--disp);font-weight:700;font-size:9.5px;letter-spacing:.24em;color:var(--grey);}
+.nav{flex:1;overflow-y:auto;padding:14px 12px;}
+.nav-sec{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--grey-dk);padding:14px 12px 8px;}
+.nav-item{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:var(--r-sm);color:var(--grey-lt);font-size:14px;font-weight:500;transition:.14s;position:relative;text-align:left;}
+.nav-item svg{flex:none;width:18px;height:18px;stroke:currentColor;}
+.nav-item:hover{background:rgba(255,255,255,.04);color:#fff;}
+.nav-item.active{background:rgba(212,31,31,.12);color:#fff;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--red);}
+.nav-item .badge{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;background:var(--red);color:#fff;border-radius:999px;padding:1px 7px;}
+.side-user{padding:14px;border-top:1px solid var(--navy-line-2);display:flex;align-items:center;gap:11px;}
+.avatar{width:38px;height:38px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--teal),var(--red));}
+.side-user .who{flex:1;min-width:0;}
+.side-user .who b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.side-user .who small{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);}
+.icon-btn{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--navy-line);color:var(--grey-lt);transition:.15s;}
+.icon-btn:hover{border-color:var(--red);color:#fff;background:var(--red-soft);}
+.icon-btn svg{width:16px;height:16px;stroke:currentColor;}
+
+/* main */
+.main{min-width:0;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;padding:16px 28px;background:rgba(10,14,26,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--navy-line);}
+.menu-btn{display:none;}
+.topbar h2{font-family:var(--disp);font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:-.01em;line-height:1;}
+.topbar .crumb{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);margin-top:3px;}
+.topbar .spacer{flex:1;}
+.wk{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;color:var(--grey-lt);border:1px solid var(--navy-line);border-radius:999px;padding:7px 14px;}
+.wk .d{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);}
+.content{padding:28px;max-width:1240px;width:100%;}
+
+/* panels */
+.panel{background:var(--navy-card);border:1px solid var(--navy-line);border-radius:var(--r);padding:22px;animation:rise .5s both;}
+.panel.top::before,.panel-top{}
+.panel.redtop{position:relative;overflow:hidden;}
+.panel.redtop::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+.panel h3,.p-title{font-family:var(--disp);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.02em;}
+.p-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.p-head .spacer{flex:1;}
+.p-sub{color:var(--grey);font-size:13px;margin-top:-8px;margin-bottom:16px;}
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
+.grid{display:grid;gap:18px;}
+.g-2{grid-template-columns:repeat(2,1fr);}
+.g-3{grid-template-columns:repeat(3,1fr);}
+.g-4{grid-template-columns:repeat(4,1fr);}
+.g-21{grid-template-columns:1.6fr 1fr;}
+.stagger>*{animation:rise .5s both;}
+.stagger>*:nth-child(2){animation-delay:.05s;}
+.stagger>*:nth-child(3){animation-delay:.1s;}
+.stagger>*:nth-child(4){animation-delay:.15s;}
+.stagger>*:nth-child(5){animation-delay:.2s;}
+.stagger>*:nth-child(6){animation-delay:.25s;}
+
+/* metric cards */
+.metric{background:var(--navy-card);border:1px solid var(--navy-line);border-radius:var(--r);padding:18px 18px 16px;position:relative;overflow:hidden;}
+.metric .ml{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--grey);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.metric .mv{font-family:var(--mono);font-weight:700;font-size:34px;line-height:1.05;margin-top:10px;letter-spacing:-.02em;}
+.metric .mv small{font-size:15px;color:var(--grey);font-weight:500;}
+.metric .mfoot{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--grey-lt);}
+.metric .trend{font-family:var(--mono);font-weight:600;}
+.trend.up{color:#7fe3b0;} .trend.down{color:#f3a3a3;}
+.bar{height:6px;border-radius:6px;background:var(--navy-line-2);overflow:hidden;margin-top:12px;}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--red),#ff5b5b);}
+.bar.g i{background:linear-gradient(90deg,var(--green),#54d99a);}
+.bar.a i{background:linear-gradient(90deg,var(--amber),#f2cf86);}
+
+/* sparkline */
+.spark{display:flex;align-items:flex-end;gap:4px;height:46px;}
+.spark span{flex:1;background:linear-gradient(180deg,#33445f,#1b2740);border-radius:3px 3px 0 0;min-height:3px;transition:.2s;}
+.spark span.hi{background:linear-gradient(180deg,#ff5b5b,var(--red));}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;}
+.tbl th{font-family:var(--disp);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--grey-dk);text-align:left;padding:10px 12px;border-bottom:1px solid var(--navy-line);white-space:nowrap;}
+.tbl td{padding:13px 12px;border-bottom:1px solid var(--navy-line-2);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr{transition:.12s;}
+.tbl tbody tr:hover{background:rgba(255,255,255,.02);}
+.tbl .num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+.tbl .rt{text-align:right;}
+.who-cell{display:flex;align-items:center;gap:11px;}
+.who-cell .av{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:12px;background:linear-gradient(135deg,#1f3350,#0f1a2c);border:1px solid var(--navy-line);}
+.who-cell b{font-weight:600;font-size:13.5px;}
+.who-cell small{display:block;font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);}
+.tbl-wrap{overflow-x:auto;margin:0 -22px -22px;padding:0 22px 4px;}
+
+.tabs{display:flex;gap:6px;background:rgba(10,14,26,.6);border:1px solid var(--navy-line);border-radius:999px;padding:4px;}
+.tabs button{flex:1;font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;color:var(--grey-lt);transition:.15s;white-space:nowrap;}
+.tabs button.on{background:var(--red);color:#fff;}
+
+.kv{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--navy-line-2);font-size:13.5px;}
+.kv:last-child{border-bottom:none;}
+.kv .k{color:var(--grey-lt);}
+.kv .v{font-weight:600;text-align:right;}
+.kv .v.tnum{font-family:var(--mono);}
+
+.empty{text-align:center;color:var(--grey);padding:36px 12px;font-size:13.5px;}
+.empty svg{width:34px;height:34px;stroke:var(--grey-dk);margin-bottom:10px;}
+
+/* report sections */
+.rep-sec{border:1px solid var(--navy-line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;}
+.rep-sec .rh{display:flex;align-items:center;gap:10px;padding:12px 15px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--navy-line-2);}
+.rep-sec .rh .t{font-family:var(--disp);font-weight:700;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;}
+.rep-sec .rh .auto{margin-left:auto;font-family:var(--disp);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);border:1px solid rgba(42,166,224,.4);border-radius:999px;padding:2px 9px;}
+.rep-sec .rb{padding:14px 15px;font-size:13.5px;color:var(--offwhite);line-height:1.6;}
+.rep-sec .rb .pre{white-space:pre-wrap;}
+
+/* score grid */
+.score-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--navy-line-2);}
+.score-row:last-child{border-bottom:none;}
+.score-row .lbl{flex:1;font-size:13.5px;}
+.score-row .lbl small{display:block;color:var(--grey);font-size:11.5px;margin-top:2px;}
+.seg{display:flex;gap:5px;}
+.seg button{width:34px;height:34px;border-radius:8px;border:1px solid var(--navy-line);font-family:var(--mono);font-weight:700;font-size:13px;color:var(--grey-lt);transition:.12s;}
+.seg button:hover{border-color:#33445f;}
+.seg button.on{background:var(--red);border-color:var(--red);color:#fff;}
+
+.stagebar{display:flex;gap:0;margin:6px 0 4px;}
+.stagebar .st{flex:1;text-align:center;position:relative;padding-top:26px;}
+.stagebar .st .dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:var(--navy-card);border:2px solid var(--navy-line);z-index:2;}
+.stagebar .st.done .dot{background:var(--green);border-color:var(--green);}
+.stagebar .st.now .dot{background:var(--red);border-color:var(--red);box-shadow:0 0 0 4px var(--red-soft);}
+.stagebar .st::before{content:'';position:absolute;top:8px;left:-50%;width:100%;height:2px;background:var(--navy-line);}
+.stagebar .st:first-child::before{display:none;}
+.stagebar .st.done::before,.stagebar .st.now::before{background:var(--green);}
+.stagebar .st .nm{font-family:var(--disp);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);}
+.stagebar .st.now .nm,.stagebar .st.done .nm{color:#fff;}
+
+.check{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--navy-line);border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;transition:.14s;}
+.check:hover{border-color:#33445f;}
+.check .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--navy-line);flex:none;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.check.on .box{background:var(--green);border-color:var(--green);}
+.check.on .box svg{opacity:1;}
+.check .box svg{width:13px;height:13px;stroke:#06140c;stroke-width:3.4;opacity:0;}
+.check.on .lbl{color:var(--grey);text-decoration:line-through;}
+.check .lbl{flex:1;font-size:13.5px;}
+
+/* modal */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(4,7,14,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;animation:fade .2s;}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+.sheet{width:100%;max-width:520px;max-height:90vh;overflow-y:auto;background:var(--navy-card);border:1px solid var(--navy-line);border-radius:var(--r);box-shadow:var(--shadow);animation:rise .28s both;}
+.sheet-head{display:flex;align-items:center;gap:12px;padding:20px 22px;border-bottom:1px solid var(--navy-line);position:sticky;top:0;background:var(--navy-card);z-index:2;}
+.sheet-head h3{font-family:var(--disp);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:-.01em;}
+.sheet-head .spacer{flex:1;}
+.sheet-body{padding:22px;}
+.sheet-foot{padding:16px 22px;border-top:1px solid var(--navy-line);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--navy-card);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:300;background:var(--navy-card);border:1px solid var(--navy-line);border-left:3px solid var(--green);border-radius:var(--r-sm);padding:13px 18px;font-size:13.5px;box-shadow:var(--shadow);opacity:0;transition:.3s;pointer-events:none;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.section-title{font-family:var(--disp);font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--grey-lt);margin:6px 0 14px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--navy-line);}
+
+/* responsive */
+@media(max-width:1080px){ .g-4{grid-template-columns:repeat(2,1fr);} .g-3{grid-template-columns:repeat(2,1fr);} .g-21{grid-template-columns:1fr;} }
+@media(max-width:880px){
+  .shell.on{grid-template-columns:1fr;}
+  .side{position:fixed;left:0;top:0;bottom:0;width:264px;z-index:120;transform:translateX(-100%);transition:transform .25s;}
+  .side.open{transform:none;box-shadow:0 0 70px rgba(0,0,0,.7);}
+  .menu-btn{display:flex;}
+  .scrim{position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.5);display:none;}
+  .scrim.on{display:block;}
+  .topbar{padding:14px 18px;}
+  .content{padding:18px;}
+  .topbar h2{font-size:20px;}
+}
+@media(max-width:620px){
+  .g-2,.g-3,.g-4{grid-template-columns:1fr;}
+  .quick{grid-template-columns:1fr;}
+  .metric .mv{font-size:30px;}
+  .wk{display:none;}
+}
+/* desktop grid fix: scrim is mobile-only, must not occupy a grid cell */
+.scrim{display:none;}
+
+/* ===== v2 vibrancy pass (brand tokens, lifted) ===== */
+body::before{background:radial-gradient(940px 700px at 88% -8%, rgba(212,31,31,.17), transparent 62%),radial-gradient(820px 680px at -6% 12%, rgba(42,166,224,.11), transparent 56%),radial-gradient(1000px 780px at 50% 122%, rgba(212,31,31,.09), transparent 62%);}
+.btn-red{background:linear-gradient(135deg,#FF4242,var(--red) 55%,var(--red-dk));box-shadow:0 12px 28px -14px rgba(212,31,31,.65);}
+.btn-red:hover{background:linear-gradient(135deg,#FF5252,var(--red) 50%,var(--red-dk));box-shadow:0 16px 34px -14px rgba(212,31,31,.8);}
+.panel.redtop::before{background:linear-gradient(90deg,#FF4646,var(--red) 45%,rgba(212,31,31,.18));box-shadow:0 0 18px rgba(212,31,31,.5);}
+.nav-item.active{background:linear-gradient(90deg,rgba(212,31,31,.24),rgba(212,31,31,.05));}
+.nav-item.active::before{box-shadow:0 0 12px rgba(212,31,31,.8);}
+.bar i{background:linear-gradient(90deg,var(--red),#FF6B6B);box-shadow:0 0 12px rgba(212,31,31,.5);}
+.bar.g i{background:linear-gradient(90deg,var(--green),#54D99A);box-shadow:0 0 12px rgba(34,179,107,.5);}
+.bar.a i{background:linear-gradient(90deg,var(--amber),#F2CF86);box-shadow:0 0 12px rgba(224,165,43,.45);}
+.spark span.hi{box-shadow:0 0 14px rgba(212,31,31,.55);}
+.metric{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,0) 38%),var(--navy-card);}
+.metric::after{content:'';position:absolute;top:0;left:0;width:62%;height:2px;background:linear-gradient(90deg,rgba(212,31,31,.6),transparent);}
+.login-card{box-shadow:0 34px 90px -34px rgba(212,31,31,.3),var(--shadow);}
+.login-top::after{background:linear-gradient(90deg,#FF4646,var(--red) 40%,transparent);box-shadow:0 0 16px rgba(212,31,31,.5);}
+.avatar{box-shadow:0 8px 20px -8px rgba(212,31,31,.55);}
+.flag.green .dot{box-shadow:0 0 10px var(--green);} .flag.red .dot{box-shadow:0 0 10px var(--red);} .flag.amber .dot{box-shadow:0 0 10px var(--amber);}
+.tabs button.on{background:linear-gradient(135deg,#FF4242,var(--red));}
+.seg button.on{background:linear-gradient(135deg,#FF4242,var(--red));}
+.mark-img{display:block;flex:none;filter:drop-shadow(0 4px 14px rgba(212,31,31,.35));}
+.cert .clogo{width:72px;height:72px;margin:0 auto 12px;display:block;filter:drop-shadow(0 8px 22px rgba(212,31,31,.4));}
+.cert::after{box-shadow:0 0 22px rgba(212,31,31,.55);}
+
+/* ===== rep training: quiz, result, certificate ===== */
+.qwrap{max-width:680px;}
+.qprog{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.qc{font-family:var(--mono);font-size:12px;color:var(--grey);white-space:nowrap;}
+.qcard{background:var(--navy-card);border:1px solid var(--navy-line);border-radius:var(--r);padding:24px;}
+.qnum{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);}
+.qtext{font-size:18px;font-weight:600;color:#fff;margin:10px 0 18px;line-height:1.4;}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:rgba(10,14,26,.5);border:1px solid var(--navy-line);color:var(--offwhite);padding:14px 15px;border-radius:var(--r-sm);margin-bottom:10px;cursor:pointer;font-size:15px;transition:.14s;}
+.opt .ob{width:25px;height:25px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid var(--navy-line);font-family:var(--mono);font-weight:700;font-size:12px;color:var(--grey);}
+.opt:hover:not([disabled]){border-color:#33445f;}
+.opt.sel{border-color:var(--red);background:var(--red-soft);}
+.opt.sel .ob{background:var(--red);border-color:var(--red);color:#fff;}
+.opt.correct{border-color:var(--green);background:var(--green-soft);}
+.opt.correct .ob{background:var(--green);border-color:var(--green);color:#06140c;}
+.opt.wrong{border-color:var(--red);background:var(--red-soft);}
+.opt.wrong .ob{background:var(--red);border-color:var(--red);color:#fff;}
+.opt[disabled]{cursor:default;}
+.explain{font-size:14px;color:var(--grey-lt);margin-top:4px;padding:13px 15px;border-left:2px solid var(--navy-line);background:rgba(10,14,26,.4);border-radius:0 var(--r-sm) var(--r-sm) 0;line-height:1.55;display:none;}
+.explain.show{display:block;animation:rise .3s both;}
+.explain b{color:#fff;}
+.qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px;}
+.result{text-align:center;padding:30px 22px;}
+.result .score{font-family:var(--mono);font-weight:700;font-size:72px;line-height:1;}
+.result .score.pass{color:#7fe3b0;}
+.result .score.fail{color:#f3a3a3;}
+.result .verdict{font-family:var(--disp);font-weight:900;font-size:26px;text-transform:uppercase;margin:6px 0 8px;}
+.result p{color:var(--grey-lt);max-width:440px;margin:0 auto;}
+.cert{position:relative;background:linear-gradient(160deg,#0C1322,#0A0E1A);border:1px solid var(--navy-line);border-radius:var(--r);padding:40px;text-align:center;overflow:hidden;}
+.cert::before{content:'';position:absolute;inset:10px;border:1px solid rgba(212,31,31,.25);border-radius:8px;pointer-events:none;}
+.cert::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--red);}
+.cert .ck{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--red);}
+.cert h2{font-family:var(--disp);font-weight:900;font-size:32px;text-transform:uppercase;letter-spacing:-.01em;margin:6px 0;}
+.cert .cname{font-family:var(--disp);font-weight:800;font-size:26px;color:#fff;margin:18px 0 6px;border-bottom:1px solid var(--navy-line);display:inline-block;padding:0 24px 8px;}
+.cert .cmeta{color:var(--grey-lt);font-size:14px;}
+.cert .csig{display:flex;justify-content:space-between;margin-top:30px;font-size:12px;color:var(--grey);}
+.cert .csig b{display:block;color:#fff;font-family:var(--disp);letter-spacing:.06em;}
+@media print{ body::before,body::after,.side,.topbar{display:none!important;} .shell.on{display:block;} .content{padding:0;max-width:none;} .no-print{display:none!important;} }
+
+</style>
+</head>
+<body>
+<div class="app-root">
+
+  <!-- ===================== LOGIN ===================== -->
+  <div class="login-wrap" id="login">
+    <div class="login">
+      <div class="login-card">
+        <div class="login-top">
+          <div class="login-brand">
+            <span class="mark" id="markLogin"></span>
+            <span class="name">Shevlin<span>Operating System</span></span>
+          </div>
+          <h1>Sign <span class="red">in</span></h1>
+          <p>The system that runs the operation. One source of truth, one standard.</p>
+        </div>
+        <div class="login-body">
+          <div class="field">
+            <label>Email</label>
+            <input id="liEmail" type="email" autocomplete="username" placeholder="you@shevlin.os" />
+          </div>
+          <div class="field">
+            <label>Access PIN</label>
+            <input id="liPin" type="password" autocomplete="current-password" placeholder="••••" />
+          </div>
+          <div class="login-err" id="liErr"></div>
+          <button class="btn btn-red" style="width:100%" id="liBtn">Enter the system</button>
+          <div class="login-foot">
+            <div class="lbl">Demo accounts — tap to enter</div>
+            <div class="quick" id="quickList"></div>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--grey-dk);font-size:11.5px;margin-top:18px;letter-spacing:.02em;">Shevlin Coaching &nbsp;·&nbsp; build v3.0</p>
+    </div>
+  </div>
+
+  <!-- ===================== SHELL ===================== -->
+  <div class="shell" id="shell">
+    <div class="scrim" id="scrim"></div>
+    <aside class="side" id="side">
+      <div class="side-top">
+        <div class="side-brand">
+          <span class="mark" id="markSide"></span>
+          <span class="name">Shevlin<span>Operating System</span></span>
+        </div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="side-user">
+        <div class="avatar" id="userAv">A</div>
+        <div class="who"><b id="userName">—</b><small id="userRole">—</small></div>
+        <button class="icon-btn" id="logoutBtn" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" title="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="crumb" id="crumb">Operation</div>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+        <div class="spacer"></div>
+        <div class="wk"><span class="d"></span><span id="wkLabel">Week of —</span></div>
+      </header>
+      <main class="content" id="view"></main>
+    </div>
+  </div>
+
+  <!-- modal + toast -->
+  <div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   SHEVLIN OPERATING SYSTEM
+   Single-file, deployable, role-based management system.
+   ------------------------------------------------------------
+   DATA LAYER
+   This build runs in DATA_MODE = 'local'. All data lives in the
+   STATE object below and is persisted to the browser. It works
+   immediately, hosted or offline, with a real role-gated login.
+
+   To go fully live as a multi-user system of record (shared data
+   across the whole team + secure server-side auth), switch to
+   DATA_MODE = 'supabase' and supply your project keys. Every read/
+   write already routes through the small db() layer, so wiring
+   Supabase is a contained change — not a rebuild. See db() below.
+   ============================================================ */
+const CONFIG = {
+  DATA_MODE: 'local',            // demo fallback; live mode switches on automatically when the key below is set
+  SUPABASE_URL: 'https://wuugikbtlmdyfgvuopic.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_po2MbZdw3YpW2Fhx9yhlkA_1bEmmFgm',   // legacy public anon key (starts eyJ...)
+  COOKIE_DOMAIN: '.shevlincrm.co.uk',         // shared session across CRM + MOS subdomains
+  STORE_KEY: 'shevlin_os_v2',
+  OPERATION: 'Shevlin Coaching · Operation One'
+};
+
+/* ---------- ladder / roles ---------- */
+const LADDER = {
+  owner:  {label:'Owner',          level:5, sec:'Leadership'},
+  bp:     {label:'Business Partner',level:4, sec:'Leadership'},
+  tl:     {label:'Team Leader',    level:3, sec:'Leadership'},
+  coach:  {label:'Sales Coach',    level:2, sec:'Field'},
+  closer: {label:'Closer',         level:1, sec:'Field'},
+  setter: {label:'Setter',         level:1, sec:'Field'}
+};
+
+/* ---------- targets from the documented OS ---------- */
+const TARGETS = {
+  setter: {profiles:200, firstMsgs:125, followUps:62, forms:18},      // weekly
+  closer: {callsTaken:18, closes:5, revenue:24000, commission:5000},
+  coach:  {repsOnTarget:5, reviews:10, oneToOnes:5}
+};
+
+/* ============================================================
+   STATE  (seeded demo operation)
+   ============================================================ */
+let STATE = null;
+const uid = (p='id')=>p+'_'+Math.random().toString(36).slice(2,9);
+const WK = wkStart(new Date());
+
+function wkStart(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
+function wkBack(n){ const x=new Date(WK); x.setDate(x.getDate()-7*n); return x.toISOString().slice(0,10); }
+function fmtWk(iso){ const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function money(n){ return '£'+Math.round(n).toLocaleString('en-GB'); }
+function pct(n){ return Math.round(n)+'%'; }
+
+function seed(){
+  const M=[
+    {id:'u_ayden', name:'Ayden Shevlin', email:'ayden@shevlin.os', pin:'1234', role:'owner',  pod:null,     mgr:null,       status:'active', start:'2023-01-10'},
+    {id:'u_jordan',name:'Jordan Hayes',  email:'jordan@shevlin.os',pin:'1234', role:'bp',     pod:null,     mgr:'u_ayden',  status:'active', start:'2023-04-02'},
+    {id:'u_priya', name:'Priya Anand',   email:'priya@shevlin.os', pin:'1234', role:'tl',     pod:null,     mgr:'u_jordan', status:'active', start:'2023-08-15'},
+    {id:'u_marcus',name:'Marcus Bell',   email:'marcus@shevlin.os',pin:'1234', role:'coach',  pod:'Pod A',  mgr:'u_priya',  status:'active', start:'2024-01-09'},
+    {id:'u_elena', name:'Elena Ortiz',   email:'elena@shevlin.os', pin:'1234', role:'coach',  pod:'Pod B',  mgr:'u_priya',  status:'amber',  start:'2024-02-20'},
+    {id:'u_tom',   name:'Tom Frost',     email:'tom@shevlin.os',   pin:'1234', role:'closer', pod:'Pod A',  mgr:'u_marcus', status:'active', start:'2024-05-06'},
+    {id:'u_aisha', name:'Aisha Khan',    email:'aisha@shevlin.os', pin:'1234', role:'closer', pod:'Pod B',  mgr:'u_elena',  status:'active', start:'2024-06-18'},
+    {id:'u_liam',  name:'Liam Doyle',    email:'liam@shevlin.os',  pin:'1234', role:'setter', pod:'Pod A',  mgr:'u_marcus', status:'active', start:'2024-09-02'},
+    {id:'u_sofia', name:'Sofia Marin',   email:'sofia@shevlin.os', pin:'1234', role:'setter', pod:'Pod A',  mgr:'u_marcus', status:'red',    start:'2025-02-11'},
+    {id:'u_noah',  name:'Noah Wells',    email:'noah@shevlin.os',  pin:'1234', role:'setter', pod:'Pod B',  mgr:'u_elena',  status:'active', start:'2024-11-25'},
+    {id:'u_mia',   name:'Mia Tran',      email:'mia@shevlin.os',   pin:'1234', role:'setter', pod:'Pod B',  mgr:'u_elena',  status:'training',start:'2025-04-14'}
+  ];
+
+  // weekly KPIs — 5 weeks back to now, with a believable trend per rep
+  const kpis=[];
+  const wks=[wkBack(4),wkBack(3),wkBack(2),wkBack(1),WK];
+  function series(base,drift,jit){return wks.map((w,i)=>Math.max(0,Math.round(base+drift*i+(Math.random()*2-1)*jit)));}
+  M.forEach(m=>{
+    if(m.role==='setter'){
+      const f=m.id==='u_sofia'?series(170,-22,8):series(180,8,12);
+      const fm=m.id==='u_sofia'?series(95,-12,6):series(110,6,8);
+      const fu=series(55,3,5); const forms=m.id==='u_sofia'?series(9,-1.3,1):(m.id==='u_mia'?series(8,2,1):series(15,1.2,2));
+      wks.forEach((w,i)=>kpis.push({id:uid('k'),repId:m.id,week:w,role:'setter',profiles:f[i],firstMsgs:fm[i],followUps:fu[i],forms:forms[i]}));
+    } else if(m.role==='closer'){
+      const ct=series(17,1,2); const cl=series(4.6,.3,1); const rev=cl.map(c=>c*4800+Math.round((Math.random()*2-1)*1500));
+      wks.forEach((w,i)=>kpis.push({id:uid('k'),repId:m.id,week:w,role:'closer',callsTaken:ct[i],closes:cl[i],revenue:Math.max(0,rev[i]),commission:cl[i]*1000}));
+    } else if(m.role==='coach'){
+      const rt=m.id==='u_elena'?series(3,-.2,1):series(5,.2,1); const rv=series(9,.5,2); const o2o=series(4.4,.2,1);
+      wks.forEach((w,i)=>kpis.push({id:uid('k'),repId:m.id,week:w,role:'coach',repsOnTarget:Math.max(0,rt[i]),reviews:rv[i],oneToOnes:o2o[i]}));
+    }
+  });
+
+  // scorecards
+  const MSG=['Personalisation','ICP accuracy','Honesty','Clarity','Brevity','Pressure-free'];
+  const CALL=['Rapport & frame','Discovery depth','Qualification','Value framing','Objection honesty','Clear next step','Pressure-free close','Accuracy & honesty'];
+  const sc=[];
+  function card(repId,type,when,avg,jit,assessor){
+    const crit=type==='message'?MSG:CALL; const scores={};
+    crit.forEach(c=>scores[c]=Math.min(5,Math.max(1,Math.round(avg+(Math.random()*2-1)*jit))));
+    const total=Object.values(scores).reduce((a,b)=>a+b,0); const max=crit.length*5; const p=Math.round(total/max*100);
+    return {id:uid('sc'),repId,type,date:when,scores,total,max,pct:p,flag:p>=85?'green':p>=75?'amber':'red',assessor,note:''};
+  }
+  sc.push(card('u_liam','message',wkBack(1),4.4,.6,'u_marcus'));
+  sc.push(card('u_liam','message',WK,4.5,.5,'u_marcus'));
+  sc.push(card('u_sofia','message',wkBack(1),3.1,.7,'u_marcus'));
+  sc.push(card('u_sofia','message',WK,2.9,.8,'u_marcus'));
+  sc.push(card('u_noah','message',WK,4.1,.6,'u_elena'));
+  sc.push(card('u_mia','message',WK,3.7,.7,'u_elena'));
+  sc.push(card('u_tom','call',wkBack(1),4.3,.6,'u_marcus'));
+  sc.push(card('u_tom','call',WK,4.4,.5,'u_marcus'));
+  sc.push(card('u_aisha','call',WK,4.0,.7,'u_elena'));
+
+  // weekly reports (rhythm engine) — a couple already submitted
+  const reports=[
+    {id:uid('r'),authorId:'u_marcus',role:'coach',week:wkBack(1),submittedAt:wkBack(1),
+      data:{flag:'Sofia red on message quality — volume paused, coaching booked.',risk:'Sofia',notes:'Liam strong, ready to mentor.'}},
+    {id:uid('r'),authorId:'u_priya',role:'tl',week:wkBack(1),submittedAt:wkBack(1),
+      data:{strong:'Tom Frost — 6 closes, clean call reviews.',behind:'Pod B setters under on forms — Elena addressing.',coachQuality:'Marcus on top of 1:1s; Elena slipping on reviews.',sysImprove:'Tighten the Tier 2 opener — response rate dipping.'}}
+  ];
+
+  // replacement protocol — one live
+  const replacements=[{
+    id:uid('rep'), candidateId:'u_liam', forRole:'coach', trainerId:'u_marcus',
+    stage:2, week:3, status:'On track',
+    log:[{week:1,covered:'Shadowed 1:1s, scorecard calibration'},{week:2,covered:'Led 2 rep reviews with feedback'},{week:3,covered:'Running daily check-ins for Pod A setters'}],
+    proof:[], blockers:'None'
+  }];
+
+  // 1:1s
+  const o2o=[
+    {id:uid('o'),coachId:'u_marcus',repId:'u_liam',date:wkBack(1),worked:'Personalised openers landing well',improve:'Tighten the qualifying question',block:'None'},
+    {id:uid('o'),coachId:'u_marcus',repId:'u_sofia',date:WK,worked:'Showed up consistent on volume',improve:'ICP accuracy — too many off-fit prospects',block:'Confidence after two slow weeks'}
+  ];
+
+  // onboarding
+  const onboard=[{
+    id:uid('ob'),memberId:'u_mia',role:'setter',
+    items:[
+      {label:'Signed Setter agreement',done:true},
+      {label:'Read Setter guides 1–6',done:true},
+      {label:'Passed fundamentals quiz (80%+)',done:true},
+      {label:'CRM access + pipeline walkthrough',done:false},
+      {label:'First 50 supervised messages reviewed',done:false},
+      {label:'Daily KPI targets agreed with coach',done:false}
+    ]
+  }];
+
+  STATE = {v:2, members:M, kpis, scorecards:sc, reports, replacements, oneToOnes:o2o, onboard, training:{}, session:null, view:'dashboard'};
+  seedTraining();
+}
+
+/* ============================================================
+   DATA LAYER  (swap point for Supabase)
+   ============================================================ */
+function persist(){ if(window.SB_ON)return; if(CONFIG.DATA_MODE!=='local')return; try{ localStorage.setItem(CONFIG.STORE_KEY, JSON.stringify(STATE)); }catch(e){/* in-memory only */} }
+function load(){
+  if(CONFIG.DATA_MODE==='local'){
+    try{ const raw=localStorage.getItem(CONFIG.STORE_KEY); if(raw){ STATE=JSON.parse(raw); if(STATE && STATE.members){ if(!STATE.training)STATE.training={}; return; } } }catch(e){}
+  }
+  seed();
+}
+/* db() — the single seam. In 'supabase' mode this is where reads/writes
+   would call the Supabase JS client against your tables + RLS policies. */
+const db = {
+  save(){ persist(); }
+};
+
+/* ============================================================
+   HELPERS — people, scope, metrics
+   ============================================================ */
+const me      = ()=> STATE.members.find(m=>m.id===STATE.session);
+const member  = id=> STATE.members.find(m=>m.id===id);
+const initials= n=> n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+
+function myReps(u){
+  if(!u) return [];
+  if(u.role==='owner'||u.role==='bp') return STATE.members.filter(m=>['setter','closer'].includes(m.role));
+  if(u.role==='tl'){ const pods=STATE.members.filter(m=>m.role==='coach'&&m.mgr===u.id).map(c=>c.pod); return STATE.members.filter(m=>['setter','closer'].includes(m.role)&&pods.includes(m.pod)); }
+  if(u.role==='coach') return STATE.members.filter(m=>['setter','closer'].includes(m.role)&&m.pod===u.pod);
+  return [u]; // setter / closer see themselves
+}
+function myCoaches(u){
+  if(u.role==='owner'||u.role==='bp') return STATE.members.filter(m=>m.role==='coach');
+  if(u.role==='tl') return STATE.members.filter(m=>m.role==='coach'&&m.mgr===u.id);
+  return [];
+}
+function visibleMembers(u){
+  if(u.role==='owner'||u.role==='bp') return STATE.members;
+  if(u.role==='tl'){ const ids=new Set([u.id]); myCoaches(u).forEach(c=>ids.add(c.id)); myReps(u).forEach(r=>ids.add(r.id)); return STATE.members.filter(m=>ids.has(m.id)); }
+  if(u.role==='coach'){ const ids=new Set([u.id]); myReps(u).forEach(r=>ids.add(r.id)); return STATE.members.filter(m=>ids.has(m.id)); }
+  return [u];
+}
+function kpiFor(repId,week){ return STATE.kpis.find(k=>k.repId===repId&&k.week===(week||WK)); }
+function kpiSeries(repId,field){ return STATE.kpis.filter(k=>k.repId===repId).sort((a,b)=>a.week<b.week?-1:1).map(k=>k[field]||0); }
+
+function repAttainment(m,week){
+  const k=kpiFor(m.id,week); if(!k) return null;
+  if(m.role==='setter'){ const t=TARGETS.setter; return Math.round(((k.forms/t.forms)*0.5 + (k.firstMsgs/t.firstMsgs)*0.3 + (k.profiles/t.profiles)*0.2)*100); }
+  if(m.role==='closer'){ const t=TARGETS.closer; return Math.round(((k.closes/t.closes)*0.6 + (k.callsTaken/t.callsTaken)*0.4)*100); }
+  if(m.role==='coach'){ const t=TARGETS.coach; return Math.round(((k.repsOnTarget/t.repsOnTarget)*0.5 + (k.oneToOnes/t.oneToOnes)*0.25 + (k.reviews/t.reviews)*0.25)*100); }
+  return null;
+}
+function attFlag(a){ return a==null?'lvl':a>=90?'green':a>=70?'amber':'red'; }
+
+function opTotals(week){
+  const w=week||WK; const reps=STATE.members.filter(m=>['setter','closer'].includes(m.role));
+  let forms=0,msgs=0,calls=0,closes=0,rev=0,comm=0;
+  reps.forEach(m=>{ const k=kpiFor(m.id,w); if(!k)return;
+    if(m.role==='setter'){ forms+=k.forms; msgs+=k.firstMsgs; }
+    if(m.role==='closer'){ calls+=k.callsTaken; closes+=k.closes; rev+=k.revenue; comm+=k.commission; }
+  });
+  // setter commission (est on closes attributable) + TL overrides
+  const setterComm = closes*1000;            // blended est
+  const tlOverride = forms*30 + closes*50;
+  const closeRate = calls? Math.round(closes/calls*100):0;
+  return {forms,msgs,calls,closes,rev,closeRate,commLiab:comm+setterComm+tlOverride};
+}
+function teamHealth(){
+  const reps=STATE.members.filter(m=>['setter','closer','coach'].includes(m.role));
+  const scored=reps.map(m=>({m,a:repAttainment(m,WK)})).filter(x=>x.a!=null);
+  const green=scored.filter(x=>x.a>=100).sort((a,b)=>b.a-a.a)[0];
+  const red=scored.filter(x=>x.a<70).sort((a,b)=>a.a-b.a)[0];
+  const amber=scored.filter(x=>x.a>=70&&x.a<100).sort((a,b)=>a.a-b.a)[0];
+  return {green,amber,red};
+}
+
+/* ============================================================
+   NAV CONFIG  (per role)
+   ============================================================ */
+const ICON={
+  dashboard:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 21h8v-6H3z"/>',
+  people:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  perf:'<path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/>',
+  score:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  report:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',
+  ladder:'<path d="M6 3v18M18 3v18M6 7h12M6 12h12M6 17h12"/>',
+  o2o:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  onboard:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
+  train:'<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 .8 2.7 2.5 6 2.5s6-1.7 6-2.5v-5"/>'
+};
+function navFor(role){
+  const all=[
+    {key:'dashboard',label:'Dashboard',sec:'Overview',icon:'dashboard'},
+    {key:'people',   label:'People & Pods',sec:'Operation',icon:'people',roles:['owner','bp','tl','coach']},
+    {key:'perf',     label:'Performance',sec:'Operation',icon:'perf'},
+    {key:'score',    label:'Quality Scorecards',sec:'Standard',icon:'score'},
+    {key:'report',   label:'Reporting',sec:'Standard',icon:'report'},
+    {key:'train',    label:'Training',sec:'Development',icon:'train'},
+    {key:'ladder',   label:'Progression',sec:'Growth',icon:'ladder',roles:['owner','bp','tl','coach']},
+    {key:'o2o',      label:'1:1s & Reviews',sec:'Growth',icon:'o2o',roles:['owner','bp','tl','coach']},
+    {key:'onboard',  label:'Onboarding',sec:'Growth',icon:'onboard',roles:['owner','bp','tl','coach']}
+  ];
+  return all.filter(n=>!n.roles||n.roles.includes(role));
+}
+const PAGE={dashboard:'Dashboard',people:'People & Pods',perf:'Performance',score:'Quality Scorecards',report:'Reporting',train:'Training',ladder:'Progression',o2o:'1:1s & Reviews',onboard:'Onboarding'};
+
+/* ============================================================
+   LOGO MARK
+   ============================================================ */
+function markSVG(size){
+  return `<svg class="mark" width="${size}" height="${size}" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="gL" x1="0" y1="100" x2="50" y2="0"><stop offset="0" stop-color="#1456B8"/><stop offset="1" stop-color="#2AA6E0"/></linearGradient>
+      <linearGradient id="gR" x1="100" y1="100" x2="50" y2="0"><stop offset="0" stop-color="#B81026"/><stop offset="1" stop-color="#FF4040"/></linearGradient>
+    </defs>
+    <path d="M50 6 L14 94 L46 94 L50 78 Z" fill="url(#gL)"/>
+    <path d="M50 6 L86 94 L54 94 L50 78 Z" fill="url(#gR)"/>
+    <path d="M50 6 L50 78" stroke="#0A0E1A" stroke-width="3"/>
+  </svg>`;
+}
+
+/* ============================================================
+   RENDER — views
+   ============================================================ */
+const views={};
+
+views.dashboard=function(){
+  const u=me();
+  if(['owner','bp'].includes(u.role)) return dashLeadership(u);
+  if(u.role==='tl') return dashTL(u)+trainTeamCardHTML(u);
+  if(u.role==='coach') return dashCoach(u)+trainTeamCardHTML(u);
+  return kpiBar(u)+dashRep(u)+trainCardHTML(u);
+};
+
+function metric(label,value,sub,barClass,barPct,trend){
+  return `<div class="metric">
+    <div class="ml">${label}${trend!=null?`<span class="trend ${trend>=0?'up':'down'}">${trend>=0?'▲':'▼'} ${Math.abs(trend)}%</span>`:''}</div>
+    <div class="mv">${value}</div>
+    ${sub?`<div class="mfoot">${sub}</div>`:''}
+    ${barPct!=null?`<div class="bar ${barClass||''}"><i style="width:${Math.min(100,barPct)}%"></i></div>`:''}
+  </div>`;
+}
+function trendOf(repId,field){ const s=kpiSeries(repId,field); if(s.length<2)return 0; const a=s[s.length-2],b=s[s.length-1]; return a?Math.round((b-a)/a*100):0; }
+
+function dashLeadership(u){
+  const t=opTotals(); const tprev=opTotals(wkBack(1)); const h=teamHealth();
+  const dRev=tprev.rev?Math.round((t.rev-tprev.rev)/tprev.rev*100):0;
+  const dClose=tprev.closes?Math.round((t.closes-tprev.closes)/tprev.closes*100):0;
+  const dForms=tprev.forms?Math.round((t.forms-tprev.forms)/tprev.forms*100):0;
+  const active=STATE.members.length;
+  function hCard(x,kind,word){ if(!x)return ''; const m=x.m; return `<div class="kv"><span class="k"><span class="flag ${kind}"><span class="dot"></span>${word}</span></span><span class="v">${m.name} · ${pct(x.a)}</span></div>`; }
+  return `
+  <div class="grid g-4 stagger" style="margin-bottom:18px">
+    ${metric('Revenue · week',money(t.rev),`Target ${money(TARGETS.closer.revenue*STATE.members.filter(m=>m.role==='closer').length)}`,t.rev>=24000?'g':'a',t.rev/ (TARGETS.closer.revenue*2) *100,dRev)}
+    ${metric('Closes · week',t.closes,`Close rate ${pct(t.closeRate)}`,'g',t.closeRate,dClose)}
+    ${metric('Forms submitted',t.forms,`From ${STATE.members.filter(m=>m.role==='setter').length} setters`,t.forms>=60?'g':'a',t.forms/80*100,dForms)}
+    ${metric('Commission liability',money(t.commLiab),'Incl. overrides',null,null,null)}
+  </div>
+  <div class="grid g-21">
+    <div class="panel redtop stagger">
+      <div class="p-head"><h3>Friday Report</h3><span class="spacer"></span><span class="flag lvl"><span class="dot"></span>Assembled</span></div>
+      <p class="p-sub">Pre-assembled from the operation. Your job is the judgement, not the data entry.</p>
+      ${reportSection('Setter pipeline',`${t.msgs} first messages · ${t.forms} forms submitted this week. ${dForms>=0?'Up':'Down'} ${Math.abs(dForms)}% on last week.`,true)}
+      ${reportSection('Closer pipeline',`${t.calls} calls taken · ${t.closes} closes · ${pct(t.closeRate)} close rate · ${money(t.rev)} revenue.`,true)}
+      ${reportSection('Commission liability',`${money(t.commLiab)} owed this week across all levels, including team overrides.`,true)}
+      ${reportSection('Team health',`${h.green?'🟢 '+h.green.m.name+' ('+pct(h.green.a)+')':'—'} &nbsp; ${h.amber?'🟡 '+h.amber.m.name+' ('+pct(h.amber.a)+')':''} &nbsp; ${h.red?'🔴 '+h.red.m.name+' ('+pct(h.red.a)+')':''}`,true)}
+      ${reportSection('Replacement pipeline',replacementSummary(),true)}
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-red btn-sm" data-action="goto" data-key="report">Open full report</button>
+        <button class="btn btn-ghost btn-sm" data-action="goto" data-key="perf">Operation performance</button>
+      </div>
+    </div>
+    <div class="grid" style="gap:18px">
+      <div class="panel stagger">
+        <div class="p-head"><h3>Owner Rhythm</h3></div>
+        <div class="kv"><span class="k">Mon · Report review</span><span class="v muted">30 min</span></div>
+        <div class="kv"><span class="k">Tue · BP review call</span><span class="v muted">30–45 min</span></div>
+        <div class="kv"><span class="k">Wed · Product & strategy</span><span class="v" style="color:#7fe3b0">Protected</span></div>
+        <div class="kv"><span class="k">Thu · External</span><span class="v muted">—</span></div>
+        <div class="kv"><span class="k">Fri · One read</span><span class="v muted">Awareness</span></div>
+      </div>
+      <div class="panel">
+        <div class="p-head"><h3>This week</h3></div>
+        ${hCard(h.green,'green','Green')}
+        ${hCard(h.amber,'amber','Amber')}
+        ${hCard(h.red,'red','Red')}
+        <div class="kv"><span class="k">Active team</span><span class="v tnum">${active}</span></div>
+        <div class="kv"><span class="k">In training</span><span class="v tnum">${STATE.members.filter(m=>m.status==='training').length}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashTL(u){
+  const reps=myReps(u); const coaches=myCoaches(u);
+  let forms=0,closes=0,calls=0; reps.forEach(m=>{const k=kpiFor(m.id);if(!k)return; if(m.role==='setter')forms+=k.forms; if(m.role==='closer'){closes+=k.closes;calls+=k.callsTaken;}});
+  const onTrack=reps.filter(m=>{const a=repAttainment(m);return a!=null&&a>=90;}).length;
+  return `
+  <div class="grid g-4 stagger" style="margin-bottom:18px">
+    ${metric('Team forms · week',forms,`${reps.filter(r=>r.role==='setter').length} setters`,'g',forms/40*100)}
+    ${metric('Team closes · week',closes,`${calls} calls · ${pct(calls?Math.round(closes/calls*100):0)}`,'g',calls?closes/calls*100:0)}
+    ${metric('Reps on target',`${onTrack}<small>/${reps.length}</small>`,'≥90% attainment',onTrack>=reps.length*0.7?'g':'a',onTrack/reps.length*100)}
+    ${metric('Coaches',coaches.length,'Pods you own',null,null)}
+  </div>
+  <div class="grid g-21">
+    <div class="panel">
+      <div class="p-head"><h3>Your reps</h3><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-action="goto" data-key="perf">Performance</button></div>
+      ${repTable(reps)}
+    </div>
+    <div class="grid" style="gap:18px">
+      <div class="panel redtop">
+        <div class="p-head"><h3>Coach quality</h3></div>
+        ${coaches.map(c=>{const a=repAttainment(c); return `<div class="kv"><span class="k">${c.name}</span><span class="v"><span class="flag ${attFlag(a)}"><span class="dot"></span>${a!=null?pct(a):'—'}</span></span></div>`;}).join('')}
+      </div>
+      <div class="panel">
+        <div class="p-head"><h3>Friday review</h3></div>
+        <p class="p-sub">Due Friday 4pm to ${member(u.mgr)?member(u.mgr).name:'BP'}.</p>
+        <button class="btn btn-red btn-sm" data-action="goto" data-key="report">Open weekly review</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashCoach(u){
+  const reps=myReps(u); const k=kpiFor(u.id);
+  const onTrack=reps.filter(m=>{const a=repAttainment(m);return a!=null&&a>=90;}).length;
+  const due1=reps.length-(STATE.oneToOnes.filter(o=>o.coachId===u.id&&o.date>=WK).length);
+  return `
+  <div class="grid g-4 stagger" style="margin-bottom:18px">
+    ${metric('Pod reps',reps.length,u.pod||'—',null,null)}
+    ${metric('Reps on target',`${onTrack}<small>/${reps.length}</small>`,'This week','g',onTrack/Math.max(1,reps.length)*100)}
+    ${metric('1:1s done',`${k?k.oneToOnes:0}<small>/${TARGETS.coach.oneToOnes}</small>`,'This week',(k&&k.oneToOnes>=TARGETS.coach.oneToOnes)?'g':'a',(k?k.oneToOnes:0)/TARGETS.coach.oneToOnes*100)}
+    ${metric('Reviews logged',`${k?k.reviews:0}<small>/${TARGETS.coach.reviews}</small>`,'This week',(k&&k.reviews>=TARGETS.coach.reviews)?'g':'a',(k?k.reviews:0)/TARGETS.coach.reviews*100)}
+  </div>
+  <div class="grid g-21">
+    <div class="panel">
+      <div class="p-head"><h3>${u.pod} reps</h3><span class="spacer"></span>
+        <button class="btn btn-ghost btn-sm" data-action="goto" data-key="score">Score</button>
+        <button class="btn btn-red btn-sm" data-action="new-o2o">Log 1:1</button></div>
+      ${repTable(reps,true)}
+    </div>
+    <div class="grid" style="gap:18px">
+      <div class="panel redtop">
+        <div class="p-head"><h3>Needs attention</h3></div>
+        ${reps.filter(m=>{const a=repAttainment(m);return a!=null&&a<90;}).map(m=>{const a=repAttainment(m);return `<div class="kv"><span class="k">${m.name}</span><span class="v"><span class="flag ${attFlag(a)}"><span class="dot"></span>${pct(a)}</span></span></div>`;}).join('')||'<div class="empty">All reps on target 🟢</div>'}
+      </div>
+      <div class="panel">
+        <div class="p-head"><h3>Weekly log</h3></div>
+        <p class="p-sub">Due to ${member(u.mgr)?member(u.mgr).name:'Team Leader'}.</p>
+        <button class="btn btn-red btn-sm" data-action="goto" data-key="report">Open weekly log</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashRep(u){
+  const k=kpiFor(u.id); const a=repAttainment(u);
+  const mine=STATE.scorecards.filter(s=>s.repId===u.id).sort((x,y)=>x.date<y.date?1:-1)[0];
+  if(u.role==='setter'){
+    const t=TARGETS.setter;
+    return `
+    <div class="grid g-4 stagger" style="margin-bottom:18px">
+      ${metric('Forms · week',`${k?k.forms:0}`,`Target ${t.forms}`,(k&&k.forms>=t.forms)?'g':'a',(k?k.forms:0)/t.forms*100,trendOf(u.id,'forms'))}
+      ${metric('First messages',`${k?k.firstMsgs:0}`,`Target ${t.firstMsgs}`,(k&&k.firstMsgs>=t.firstMsgs)?'g':'a',(k?k.firstMsgs:0)/t.firstMsgs*100,trendOf(u.id,'firstMsgs'))}
+      ${metric('Profiles qualified',`${k?k.profiles:0}`,`Target ${t.profiles}`,(k&&k.profiles>=t.profiles)?'g':'a',(k?k.profiles:0)/t.profiles*100,trendOf(u.id,'profiles'))}
+      ${metric('Attainment',pct(a||0),'Blended vs target',attFlag(a),a)}
+    </div>
+    <div class="grid g-21">
+      <div class="panel"><div class="p-head"><h3>Forms — last 5 weeks</h3></div>${sparkPanel(u.id,'forms')}</div>
+      <div class="panel redtop"><div class="p-head"><h3>Latest scorecard</h3></div>${scorecardMini(mine)}
+        <p class="p-sub" style="margin-top:14px;margin-bottom:0">Daily: 20–30 first messages · 10–15 follow-ups.</p></div>
+    </div>`;
+  } else {
+    const t=TARGETS.closer;
+    return `
+    <div class="grid g-4 stagger" style="margin-bottom:18px">
+      ${metric('Closes · week',`${k?k.closes:0}`,`Target ${t.closes}`,(k&&k.closes>=t.closes)?'g':'a',(k?k.closes:0)/t.closes*100,trendOf(u.id,'closes'))}
+      ${metric('Calls taken',`${k?k.callsTaken:0}`,`Target ${t.callsTaken}`,(k&&k.callsTaken>=t.callsTaken)?'g':'a',(k?k.callsTaken:0)/t.callsTaken*100,trendOf(u.id,'callsTaken'))}
+      ${metric('Close rate',pct(k&&k.callsTaken?Math.round(k.closes/k.callsTaken*100):0),'This week','g',k&&k.callsTaken?k.closes/k.callsTaken*100:0)}
+      ${metric('Commission · week',money(k?k.commission:0),'Sourced closes',null,null)}
+    </div>
+    <div class="grid g-21">
+      <div class="panel"><div class="p-head"><h3>Closes — last 5 weeks</h3></div>${sparkPanel(u.id,'closes')}</div>
+      <div class="panel redtop"><div class="p-head"><h3>Latest call score</h3></div>${scorecardMini(mine)}</div>
+    </div>`;
+  }
+}
+
+function sparkPanel(repId,field){
+  const s=kpiSeries(repId,field); const max=Math.max(...s,1);
+  const wks=[wkBack(4),wkBack(3),wkBack(2),wkBack(1),WK];
+  return `<div class="spark">${s.map((v,i)=>`<span class="${i===s.length-1?'hi':''}" style="height:${Math.max(6,v/max*100)}%" title="${fmtWk(wks[i])}: ${v}"></span>`).join('')}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--grey-dk)">${wks.map(w=>`<span>${fmtWk(w)}</span>`).join('')}</div>`;
+}
+function scorecardMini(sc){
+  if(!sc) return '<div class="empty">No scorecard filed yet.</div>';
+  return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+      <div class="mv tnum" style="font-family:var(--mono);font-weight:700;font-size:38px;color:${sc.flag==='green'?'#7fe3b0':sc.flag==='amber'?'#f2cf86':'#f3a3a3'}">${sc.pct}%</div>
+      <div><span class="flag ${sc.flag}"><span class="dot"></span>${sc.flag==='green'?'On track':sc.flag==='amber'?'Amber':'Red'}</span>
+      <div class="muted" style="font-size:12px;margin-top:6px">${sc.type==='message'?'Message':'Call'} quality · ${fmtWk(sc.date)}</div></div>
+    </div>
+    <div class="bar ${sc.flag==='green'?'g':sc.flag==='amber'?'a':''}"><i style="width:${sc.pct}%"></i></div>`;
+}
+
+function repTable(reps,coachMode){
+  if(!reps.length) return '<div class="empty">No reps in scope.</div>';
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr>
+    <th>Rep</th><th>Role</th><th class="rt">Key metric</th><th class="rt">Attainment</th><th class="rt">Status</th>${coachMode?'<th></th>':''}
+    </tr></thead><tbody>${reps.map(m=>{
+      const k=kpiFor(m.id); const a=repAttainment(m);
+      const key=m.role==='setter'?`${k?k.forms:0} forms`:`${k?k.closes:0} closes`;
+      return `<tr>
+        <td><div class="who-cell"><div class="av">${initials(m.name)}</div><div><b>${m.name}</b><small>${m.pod||'—'}</small></div></div></td>
+        <td><span class="flag lvl"><span class="dot"></span>${LADDER[m.role].label}</span></td>
+        <td class="rt num">${key}</td>
+        <td class="rt"><span class="flag ${attFlag(a)}"><span class="dot"></span>${a!=null?pct(a):'—'}</span></td>
+        <td class="rt"><span class="flag ${m.status==='active'?'green':m.status==='amber'?'amber':m.status==='red'?'red':'lvl'}"><span class="dot"></span>${m.status}</span></td>
+        ${coachMode?`<td class="rt"><button class="btn btn-ghost btn-sm" data-action="score-rep" data-id="${m.id}">Score</button></td>`:''}
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+function reportSection(title,body,auto){
+  return `<div class="rep-sec"><div class="rh"><span class="t">${title}</span>${auto?'<span class="auto">Auto</span>':''}</div><div class="rb">${body}</div></div>`;
+}
+function replacementSummary(){
+  const live=STATE.replacements;
+  if(!live.length) return 'No active replacement training.';
+  return live.map(r=>`${member(r.candidateId).name} → ${LADDER[r.forRole].label} · week ${r.week} · ${r.status} (trainer: ${member(r.trainerId).name})`).join('<br>');
+}
+
+/* ---------- PEOPLE ---------- */
+views.people=function(){
+  const u=me(); const list=visibleMembers(u);
+  const canAdd=['owner','bp'].includes(u.role) && !window.SB_ON;
+  const pods=[...new Set(list.filter(m=>m.pod).map(m=>m.pod))];
+  return `
+  <div class="panel">
+    <div class="p-head"><h3>People &amp; Pods</h3><span class="spacer"></span>
+      <span class="flag lvl"><span class="dot"></span>${list.length} in scope</span>
+      ${canAdd?'<button class="btn btn-red btn-sm" data-action="new-member">Add person</button>':''}
+    </div>
+    <p class="p-sub">The org as it actually is — level on the ladder, pod, and reporting line. The spine the whole system rolls up through.</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th>Name</th><th>Level</th><th>Pod</th><th>Reports to</th><th class="rt">Started</th><th class="rt">Training</th><th class="rt">Status</th>
+    </tr></thead><tbody>${list.sort((a,b)=>LADDER[b.role].level-LADDER[a.role].level).map(m=>`<tr>
+      <td><div class="who-cell"><div class="av">${initials(m.name)}</div><div><b>${m.name}</b><small>${m.email}</small></div></div></td>
+      <td><span class="flag lvl"><span class="dot"></span>L${LADDER[m.role].level} · ${LADDER[m.role].label}</span></td>
+      <td>${m.pod||'<span class="muted">—</span>'}</td>
+      <td>${m.mgr?member(m.mgr).name:'<span class="muted">—</span>'}</td>
+      <td class="rt num">${m.start}</td>
+      <td class="rt">${trainBadge(m)}</td>
+      <td class="rt"><span class="flag ${m.status==='active'?'green':m.status==='amber'?'amber':m.status==='red'?'red':'lvl'}"><span class="dot"></span>${m.status}</span></td>
+    </tr>`).join('')}</tbody></table></div>
+  </div>
+  <div class="grid g-3" style="margin-top:18px">
+    ${pods.map(p=>{const pm=list.filter(m=>m.pod===p); const coach=pm.find(m=>m.role==='coach');
+      return `<div class="panel"><div class="p-head"><h3>${p}</h3></div>
+        <div class="kv"><span class="k">Coach</span><span class="v">${coach?coach.name:'—'}</span></div>
+        <div class="kv"><span class="k">Setters</span><span class="v tnum">${pm.filter(m=>m.role==='setter').length}</span></div>
+        <div class="kv"><span class="k">Closers</span><span class="v tnum">${pm.filter(m=>m.role==='closer').length}</span></div>
+      </div>`;}).join('')}
+  </div>`;
+};
+
+/* ---------- PERFORMANCE ---------- */
+views.perf=function(){
+  const u=me();
+  if(['setter','closer'].includes(u.role)) return perfRepView(u);
+  const reps=myReps(u);
+  const setters=reps.filter(m=>m.role==='setter'), closers=reps.filter(m=>m.role==='closer');
+  return `
+  <div class="panel" style="margin-bottom:18px">
+    <div class="p-head"><h3>Operation performance</h3><span class="spacer"></span>
+      <span class="flag lvl"><span class="dot"></span>Week of ${fmtWk(WK)}</span></div>
+    <p class="p-sub">Actual vs target, with the four-week trend. Numbers derive from the pipeline — nobody hand-keys them. Act on the leading indicators (forms, calls booked); the lagging ones (close rate, revenue) follow.</p>
+    <div class="section-title">Leading indicators</div>
+    ${perfTable(setters,'setter')}
+    <div class="section-title" style="margin-top:24px">Closer pipeline</div>
+    ${perfTable(closers,'closer')}
+  </div>`;
+};
+function perfRepView(u){
+  const fields = u.role==='setter'?[['forms','Forms'],['firstMsgs','First messages'],['profiles','Profiles'],['followUps','Follow-ups']]:[['closes','Closes'],['callsTaken','Calls taken'],['revenue','Revenue'],['commission','Commission']];
+  return `<div class="grid g-2 stagger">${fields.map(f=>`<div class="panel"><div class="p-head"><h3>${f[1]} — 5 weeks</h3></div>${sparkPanel(u.id,f[0])}</div>`).join('')}</div>`;
+}
+function perfTable(reps,role){
+  if(!reps.length) return '<div class="empty">None in scope.</div>';
+  const cols = role==='setter'
+    ? [['profiles','Profiles',TARGETS.setter.profiles],['firstMsgs','First msgs',TARGETS.setter.firstMsgs],['followUps','Follow-ups',TARGETS.setter.followUps],['forms','Forms',TARGETS.setter.forms]]
+    : [['callsTaken','Calls',TARGETS.closer.callsTaken],['closes','Closes',TARGETS.closer.closes],['revenue','Revenue',TARGETS.closer.revenue]];
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Rep</th>${cols.map(c=>`<th class="rt">${c[1]}</th>`).join('')}<th class="rt">Trend</th><th class="rt">Attainment</th></tr></thead><tbody>${reps.map(m=>{
+    const k=kpiFor(m.id); const a=repAttainment(m);
+    const trendField=role==='setter'?'forms':'closes'; const tr=trendOf(m.id,trendField);
+    return `<tr><td><div class="who-cell"><div class="av">${initials(m.name)}</div><div><b>${m.name}</b><small>${m.pod||''}</small></div></div></td>
+      ${cols.map(c=>{const v=k?k[c[0]]:0; const ok=v>=c[2]; const disp=c[0]==='revenue'?money(v):v;
+        return `<td class="rt num" style="color:${ok?'#7fe3b0':v>=c[2]*0.8?'#f2cf86':'#f3a3a3'}">${disp}<div class="muted" style="font-size:10px;font-weight:400">/${c[0]==='revenue'?money(c[2]):c[2]}</div></td>`;}).join('')}
+      <td class="rt"><span class="trend ${tr>=0?'up':'down'}">${tr>=0?'▲':'▼'} ${Math.abs(tr)}%</span></td>
+      <td class="rt"><span class="flag ${attFlag(a)}"><span class="dot"></span>${a!=null?pct(a):'—'}</span></td></tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+/* ---------- SCORECARDS ---------- */
+views.score=function(){
+  const u=me();
+  const scope = ['setter','closer'].includes(u.role) ? [u] : myReps(u);
+  const ids=new Set(scope.map(m=>m.id));
+  const cards=STATE.scorecards.filter(s=>ids.has(s.repId)).sort((a,b)=>a.date<b.date?1:-1);
+  const canScore=['owner','bp','tl','coach'].includes(u.role);
+  // monthly summary per rep
+  const summary=scope.map(m=>{const cs=STATE.scorecards.filter(s=>s.repId===m.id); if(!cs.length)return null; const avg=Math.round(cs.reduce((a,b)=>a+b.pct,0)/cs.length); return {m,avg,n:cs.length,flag:avg>=85?'green':avg>=75?'amber':'red'};}).filter(Boolean);
+  return `
+  ${canScore?`<div class="panel redtop" style="margin-bottom:18px">
+    <div class="p-head"><h3>Score the standard</h3><span class="spacer"></span><button class="btn btn-red btn-sm" data-action="new-score">New scorecard</button></div>
+    <p class="p-sub">Quality is not subjective. Six criteria for messages, eight for calls — scored 1–5. 85%+ on track · 75–84% amber · below 75% red, volume paused.</p>
+    <div class="grid g-4 stagger">${summary.map(s=>`<div class="metric"><div class="ml">${s.m.name.split(' ')[0]}</div>
+      <div class="mv tnum" style="font-size:30px;color:${s.flag==='green'?'#7fe3b0':s.flag==='amber'?'#f2cf86':'#f3a3a3'}">${s.avg}%</div>
+      <div class="mfoot"><span class="flag ${s.flag}"><span class="dot"></span>${s.n} filed</span></div></div>`).join('')||'<div class="empty">No scorecards yet.</div>'}</div>
+  </div>`:''}
+  <div class="panel">
+    <div class="p-head"><h3>Filed scorecards</h3></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Rep</th><th>Type</th><th class="rt">Score</th><th class="rt">Result</th><th>Assessor</th><th class="rt">Date</th></tr></thead><tbody>${cards.map(s=>`<tr>
+      <td><b>${member(s.repId).name}</b></td>
+      <td>${s.type==='message'?'Message':'Call'}</td>
+      <td class="rt num">${s.total}/${s.max}</td>
+      <td class="rt"><span class="flag ${s.flag}"><span class="dot"></span>${s.pct}%</span></td>
+      <td class="muted">${member(s.assessor)?member(s.assessor).name:'—'}</td>
+      <td class="rt num">${fmtWk(s.date)}</td>
+    </tr>`).join('')||'<tr><td colspan="6"><div class="empty">No scorecards filed.</div></td></tr>'}</tbody></table></div>
+  </div>`;
+};
+
+/* ---------- REPORTING (rhythm engine) ---------- */
+views.report=function(){
+  const u=me();
+  if(['owner','bp'].includes(u.role)) return reportOwner(u);
+  if(u.role==='tl') return reportTL(u);
+  if(u.role==='coach') return reportCoach(u);
+  return reportRep(u);
+};
+function reportOwner(u){
+  const t=opTotals(); const h=teamHealth(); const tprev=opTotals(wkBack(1));
+  const dForms=tprev.forms?Math.round((t.forms-tprev.forms)/tprev.forms*100):0;
+  const submitted=STATE.reports.filter(r=>r.role==='tl');
+  return `
+  <div class="panel redtop" style="margin-bottom:18px">
+    <div class="p-head"><h3>Friday Report — Owner</h3><span class="spacer"></span><span class="flag green"><span class="dot"></span>Assembled from the operation</span></div>
+    <p class="p-sub">Everything you need, nothing you don't. The data writes itself; the judgement is yours.</p>
+    ${reportSection('Setter pipeline',`${t.msgs} first messages · ${t.forms} forms submitted. ${dForms>=0?'▲':'▼'} ${Math.abs(dForms)}% vs last week.`,true)}
+    ${reportSection('Closer pipeline',`${t.calls} calls taken · ${t.closes} closes · ${pct(t.closeRate)} close rate · ${money(t.rev)} revenue.`,true)}
+    ${reportSection('Commission liability',`${money(t.commLiab)} owed this week — base commission, overrides and bonuses.`,true)}
+    ${reportSection('Team health',`${h.green?'🟢 '+h.green.m.name+' — '+pct(h.green.a):''} &nbsp;&nbsp; ${h.amber?'🟡 '+h.amber.m.name+' — '+pct(h.amber.a):''} &nbsp;&nbsp; ${h.red?'🔴 '+h.red.m.name+' — '+pct(h.red.a):''}`,true)}
+    ${reportSection('Ladder updates',ladderUpdates(),true)}
+    ${reportSection('Replacement pipeline',replacementSummary(),true)}
+    ${reportSection('One risk',(STATE.reports.find(r=>r.role==='tl')||{data:{}}).data.behind||'No material risk flagged this week.',false)}
+    ${reportSection('One opportunity',(STATE.reports.find(r=>r.role==='tl')||{data:{}}).data.sysImprove||'—',false)}
+  </div>
+  <div class="panel">
+    <div class="p-head"><h3>Reports submitted up the chain</h3></div>
+    ${submitted.length?submitted.map(r=>`<div class="rep-sec"><div class="rh"><span class="t">${member(r.authorId).name} · ${LADDER[r.role].label}</span><span class="auto" style="color:var(--grey);border-color:var(--navy-line)">${fmtWk(r.week)}</span></div><div class="rb">${Object.entries(r.data).map(([k,v])=>`<b style="color:var(--grey)">${k}:</b> ${v}`).join('<br>')}</div></div>`).join(''):'<div class="empty">No reports submitted yet this week.</div>'}
+  </div>`;
+}
+function ladderUpdates(){
+  const inT=STATE.replacements.filter(r=>r.stage<4);
+  if(!inT.length) return 'No advancements or sign-offs this week.';
+  return inT.map(r=>`${member(r.candidateId).name} in training for ${LADDER[r.forRole].label} (stage ${r.stage}/4).`).join('<br>');
+}
+function reportTL(u){
+  const reps=myReps(u); const coaches=myCoaches(u);
+  let forms=0,closes=0,calls=0; reps.forEach(m=>{const k=kpiFor(m.id);if(!k)return; if(m.role==='setter')forms+=k.forms; if(m.role==='closer'){closes+=k.closes;calls+=k.callsTaken;}});
+  const existing=STATE.reports.find(r=>r.authorId===u.id&&r.week===WK);
+  return `
+  <div class="panel redtop">
+    <div class="p-head"><h3>Friday Review — Team Leader</h3><span class="spacer"></span>${existing?'<span class="flag green"><span class="dot"></span>Submitted</span>':'<span class="flag amber"><span class="dot"></span>Due Fri 4pm</span>'}</div>
+    <p class="p-sub">Top section pre-filled from your team. Add the judgement and submit to ${member(u.mgr)?member(u.mgr).name:'BP'}.</p>
+    ${reportSection('Team KPIs',`${forms} forms · ${calls} calls · ${closes} closes this week.`,true)}
+    ${reportSection('Coach quality',coaches.map(c=>{const a=repAttainment(c);return `${c.name}: ${a!=null?pct(a):'—'}`;}).join(' · '),true)}
+    ${reportSection('Replacement pipeline',replacementSummary(),true)}
+    <form id="repForm" style="margin-top:8px">
+      <div class="field"><label>One strong performer</label><textarea name="strong" placeholder="Who had a strong week and what made it work">${existing?existing.data.strong||'':''}</textarea></div>
+      <div class="field"><label>One person behind</label><textarea name="behind" placeholder="Who is behind, the gap, and the plan">${existing?existing.data.behind||'':''}</textarea></div>
+      <div class="field"><label>One system improvement</label><textarea name="sysImprove" placeholder="One specific thing in the playbook that could work better">${existing?existing.data.sysImprove||'':''}</textarea></div>
+      <button class="btn btn-red" data-action="submit-report" data-role="tl" type="button">${existing?'Update review':'Submit Friday review'}</button>
+    </form>
+  </div>`;
+}
+function reportCoach(u){
+  const reps=myReps(u);
+  const existing=STATE.reports.find(r=>r.authorId===u.id&&r.week===WK);
+  return `
+  <div class="panel redtop">
+    <div class="p-head"><h3>Weekly Log — Sales Coach</h3><span class="spacer"></span>${existing?'<span class="flag green"><span class="dot"></span>Submitted</span>':'<span class="flag amber"><span class="dot"></span>Due to TL</span>'}</div>
+    <p class="p-sub">Per-rep summary pulls from this week's data. Add the colour and submit to ${member(u.mgr)?member(u.mgr).name:'Team Leader'}.</p>
+    ${reportSection('Pod performance',reps.map(m=>{const a=repAttainment(m);return `${m.name}: ${a!=null?pct(a):'—'}`;}).join(' · '),true)}
+    <form id="repForm" style="margin-top:8px">
+      <div class="field"><label>One thing working across the pod</label><textarea name="notes" placeholder="What's landing well">${existing?existing.data.notes||'':''}</textarea></div>
+      <div class="field"><label>Flag for Team Leader</label><textarea name="flag" placeholder="Anything that needs escalation before next week">${existing?existing.data.flag||'':''}</textarea></div>
+      <button class="btn btn-red" data-action="submit-report" data-role="coach" type="button">${existing?'Update log':'Submit weekly log'}</button>
+    </form>
+  </div>`;
+}
+function reportRep(u){
+  const k=kpiFor(u.id);
+  return `<div class="panel redtop"><div class="p-head"><h3>Your week</h3></div>
+    <p class="p-sub">Your numbers are captured from the pipeline automatically. This is what rolls up to your coach.</p>
+    ${u.role==='setter'?reportSection('This week',`${k?k.firstMsgs:0} first messages · ${k?k.followUps:0} follow-ups · ${k?k.forms:0} forms submitted.`,true):reportSection('This week',`${k?k.callsTaken:0} calls taken · ${k?k.closes:0} closes · ${money(k?k.revenue:0)} revenue.`,true)}
+    ${reportSection('Attainment',pct(repAttainment(u)||0)+' of target',true)}
+  </div>`;
+}
+
+/* ---------- PROGRESSION / REPLACEMENT ---------- */
+views.ladder=function(){
+  const u=me(); const canAct=['owner','bp','tl','coach'].includes(u.role);
+  const rungs=Object.entries(LADDER).filter(([k])=>k!=='owner').sort((a,b)=>b[1].level-a[1].level);
+  // readiness: reps with 3 cards 85%+
+  const ready=STATE.members.filter(m=>['setter','closer','coach'].includes(m.role)).map(m=>{
+    const cs=STATE.scorecards.filter(s=>s.repId===m.id); const hi=cs.filter(c=>c.pct>=85).length;
+    return {m,hi,n:cs.length,eligible:hi>=2 && cs.length>=2};
+  });
+  return `
+  <div class="grid g-21" style="margin-bottom:18px">
+    <div class="panel">
+      <div class="p-head"><h3>Replacement Protocol</h3><span class="spacer"></span>${canAct?'<button class="btn btn-red btn-sm" data-action="new-replacement">Start protocol</button>':''}</div>
+      <p class="p-sub">Identify → Train → Prove → Sign off. Nobody advances until their seat is filled. The engine that makes the ladder self-sustaining.</p>
+      ${STATE.replacements.length?STATE.replacements.map(r=>replacementCard(r,canAct)).join(''):'<div class="empty">No active replacement training.</div>'}
+    </div>
+    <div class="panel redtop">
+      <div class="p-head"><h3>Advancement readiness</h3></div>
+      <p class="p-sub">Who is hitting the standard for the next rung.</p>
+      ${ready.map(r=>`<div class="kv"><span class="k">${r.m.name}</span><span class="v"><span class="flag ${r.eligible?'green':'lvl'}"><span class="dot"></span>${r.eligible?'Eligible':r.hi+'/'+Math.max(2,r.n)}</span></span></div>`).join('')}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="p-head"><h3>The Ladder</h3></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Level</th><th>Role</th><th>People here</th><th>Advancement rule</th></tr></thead><tbody>
+    ${rungs.map(([k,v])=>{const cnt=STATE.members.filter(m=>m.role===k).length; return `<tr>
+      <td class="num">L${v.level}</td><td><span class="flag lvl"><span class="dot"></span>${v.label}</span></td>
+      <td class="num">${cnt}</td>
+      <td class="muted" style="font-size:12.5px">${k==='setter'||k==='closer'?'Consistent output + 3 months 85%+':k==='coach'?'Replacement trained · team developing':'Operation to target 6 months · replacement signed off'}</td>
+    </tr>`;}).join('')}
+    <tr><td class="num">L5</td><td><span class="flag lvl"><span class="dot"></span>Owner</span></td><td class="num">1</td><td class="muted" style="font-size:12.5px">Ayden — strategy, not operations</td></tr>
+    </tbody></table></div>
+  </div>`;
+};
+function replacementCard(r,canAct){
+  const stages=['Identify','Train','Prove','Sign off'];
+  return `<div style="border:1px solid var(--navy-line);border-radius:var(--r-sm);padding:16px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <div class="who-cell"><div class="av">${initials(member(r.candidateId).name)}</div><div><b>${member(r.candidateId).name}</b><small>→ ${LADDER[r.forRole].label} · trainer ${member(r.trainerId).name}</small></div></div>
+      <span class="spacer" style="flex:1"></span><span class="flag ${r.status==='On track'?'green':'amber'}"><span class="dot"></span>${r.status}</span>
+    </div>
+    <div class="stagebar">${stages.map((s,i)=>`<div class="st ${i+1<r.stage?'done':i+1===r.stage?'now':''}"><span class="dot"></span><span class="nm">${s}</span></div>`).join('')}</div>
+    <div class="muted" style="font-size:12.5px;margin-top:10px">Training week ${r.week} · ${r.log[r.log.length-1]?r.log[r.log.length-1].covered:''}</div>
+    ${canAct&&r.stage<4?`<button class="btn btn-ghost btn-sm" style="margin-top:12px" data-action="advance-rep" data-id="${r.id}">Advance to ${stages[r.stage]||'sign-off'}</button>`:''}
+    ${r.stage>=4?'<div class="flag green" style="margin-top:12px"><span class="dot"></span>Signed off</div>':''}
+  </div>`;
+}
+
+/* ---------- 1:1s ---------- */
+views.o2o=function(){
+  const u=me();
+  const scope = u.role==='coach' ? STATE.oneToOnes.filter(o=>o.coachId===u.id) : STATE.oneToOnes.filter(o=>{const r=member(o.repId); return visibleMembers(u).some(v=>v.id===o.repId)||o.coachId===u.id;});
+  const list=[...scope].sort((a,b)=>a.date<b.date?1:-1);
+  const canLog=['owner','bp','tl','coach'].includes(u.role);
+  return `<div class="panel">
+    <div class="p-head"><h3>1:1s &amp; Reviews</h3><span class="spacer"></span>${canLog?'<button class="btn btn-red btn-sm" data-action="new-o2o">Log 1:1</button>':''}</div>
+    <p class="p-sub">One thing that worked, one to improve, one block — per rep, every week. When every level logs, nothing hides.</p>
+    ${list.length?list.map(o=>`<div class="rep-sec"><div class="rh"><span class="t">${member(o.repId)?member(o.repId).name:'—'}</span><span class="auto" style="color:var(--grey);border-color:var(--navy-line)">${fmtWk(o.date)} · ${member(o.coachId)?member(o.coachId).name:''}</span></div>
+      <div class="rb"><b style="color:#7fe3b0">Worked:</b> ${o.worked}<br><b style="color:#f2cf86">Improve:</b> ${o.improve}<br><b style="color:#f3a3a3">Block:</b> ${o.block||'None'}</div></div>`).join(''):'<div class="empty">No 1:1s logged yet.</div>'}
+  </div>`;
+};
+
+/* ---------- ONBOARDING ---------- */
+views.onboard=function(){
+  const u=me();
+  const visible=visibleMembers(u).map(m=>m.id);
+  const list=STATE.onboard.filter(o=>visible.includes(o.memberId));
+  return `<div class="grid g-2 stagger">${list.length?list.map(o=>{const done=o.items.filter(i=>i.done).length; const p=Math.round(done/o.items.length*100);
+    return `<div class="panel ${p===100?'':'redtop'}">
+      <div class="p-head"><h3>${member(o.memberId).name}</h3><span class="spacer"></span><span class="flag ${p===100?'green':'amber'}"><span class="dot"></span>${p}%</span></div>
+      <p class="p-sub">${LADDER[o.role].label} onboarding</p>
+      ${o.items.map((it,idx)=>`<div class="check ${it.done?'on':''}" data-action="toggle-onboard" data-id="${o.id}" data-idx="${idx}"><div class="box"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div><div class="lbl">${it.label}</div></div>`).join('')}
+    </div>`;}).join(''):'<div class="panel"><div class="empty">No one currently onboarding in your scope.</div></div>'}</div>`;
+};
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+const overlay=document.getElementById('overlay'), sheet=document.getElementById('sheet');
+function openModal(title,body,footer){
+  sheet.innerHTML=`<div class="sheet-head"><h3>${title}</h3><span class="spacer"></span><button class="icon-btn" data-action="close-modal"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sheet-body">${body}</div><div class="sheet-foot">${footer}</div>`;
+  overlay.classList.add('on');
+}
+function closeModal(){ overlay.classList.remove('on'); sheet.innerHTML=''; }
+overlay.addEventListener('click',e=>{ if(e.target===overlay) closeModal(); });
+
+function modalNewMember(){
+  openModal('Add person',
+    `<div class="field"><label>Full name</label><input id="mName" placeholder="Jane Doe"></div>
+     <div class="field"><label>Email</label><input id="mEmail" placeholder="jane@shevlin.os"></div>
+     <div class="field"><label>Level on the ladder</label><select id="mRole">
+       <option value="setter">Setter (L1)</option><option value="closer">Closer (L1)</option>
+       <option value="coach">Sales Coach (L2)</option><option value="tl">Team Leader (L3)</option><option value="bp">Business Partner (L4)</option>
+     </select></div>
+     <div class="field"><label>Pod</label><select id="mPod"><option value="">— none —</option><option>Pod A</option><option>Pod B</option></select></div>`,
+    `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-red" data-action="save-member">Add to operation</button>`);
+}
+function modalScore(presetRep){
+  const u=me(); const reps=myReps(u).filter(m=>['setter','closer'].includes(m.role));
+  const MSG=['Personalisation','ICP accuracy','Honesty','Clarity','Brevity','Pressure-free'];
+  const CALL=['Rapport & frame','Discovery depth','Qualification','Value framing','Objection honesty','Clear next step','Pressure-free close','Accuracy & honesty'];
+  function seg(name){return `<div class="score-row"><div class="lbl">${name}</div><div class="seg" data-crit="${name}">${[1,2,3,4,5].map(n=>`<button data-action="seg" data-val="${n}">${n}</button>`).join('')}</div></div>`;}
+  const initRep = presetRep || (reps[0]&&reps[0].id);
+  const initRole = initRep ? member(initRep).role : 'setter';
+  const crit = initRole==='closer'?CALL:MSG;
+  openModal('New scorecard',
+    `<div class="field"><label>Rep</label><select id="scRep">${reps.map(m=>`<option value="${m.id}" ${m.id===initRep?'selected':''}>${m.name} · ${LADDER[m.role].label}</option>`).join('')}</select></div>
+     <div id="scCrit">${crit.map(seg).join('')}</div>
+     <input type="hidden" id="scType" value="${initRole==='closer'?'call':'message'}">`,
+    `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-red" data-action="save-score">File scorecard</button>`);
+}
+function modalO2O(){
+  const u=me(); const reps=myReps(u).filter(m=>['setter','closer'].includes(m.role));
+  openModal('Log 1:1',
+    `<div class="field"><label>Rep</label><select id="oRep">${reps.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+     <div class="field"><label>One thing that worked</label><textarea id="oWorked"></textarea></div>
+     <div class="field"><label>One thing to improve</label><textarea id="oImprove"></textarea></div>
+     <div class="field"><label>One block</label><input id="oBlock" placeholder="None"></div>`,
+    `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-red" data-action="save-o2o">Save 1:1</button>`);
+}
+function modalReplacement(){
+  const u=me();
+  const cands=STATE.members.filter(m=>['setter','closer','coach'].includes(m.role));
+  const trainers=STATE.members.filter(m=>['coach','tl','bp'].includes(m.role));
+  openModal('Start replacement protocol',
+    `<div class="field"><label>Candidate</label><select id="rCand">${cands.map(m=>`<option value="${m.id}">${m.name} · ${LADDER[m.role].label}</option>`).join('')}</select></div>
+     <div class="field"><label>Training for role</label><select id="rRole"><option value="coach">Sales Coach</option><option value="tl">Team Leader</option><option value="closer">Closer</option></select></div>
+     <div class="field"><label>Trainer</label><select id="rTrainer">${trainers.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+     <p class="muted" style="font-size:12.5px">Minimum 4-week structured training, then 2 weeks independent proof, then three-party sign-off.</p>`,
+    `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-red" data-action="save-replacement">Begin · Stage 1</button>`);
+}
+
+/* ============================================================
+   ACTIONS  (event delegation)
+   ============================================================ */
+let segState={};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]'); if(!t) return;
+  const a=t.dataset.action;
+  if(a==='goto'){ setView(t.dataset.key); return; }
+  if(a==='close-modal'){ closeModal(); return; }
+  if(a==='new-member'){ modalNewMember(); return; }
+  if(a==='new-score'){ segState={}; modalScore(); return; }
+  if(a==='score-rep'||a==='score'){ segState={}; modalScore(t.dataset.id); return; }
+  if(a==='new-o2o'){ modalO2O(); return; }
+  if(a==='new-replacement'){ modalReplacement(); return; }
+  if(a==='seg'){
+    const wrap=t.closest('.seg'); wrap.querySelectorAll('button').forEach(b=>b.classList.remove('on')); t.classList.add('on');
+    segState[wrap.dataset.crit]=+t.dataset.val; return;
+  }
+  if(a==='save-member'){ saveMember(); return; }
+  if(a==='save-score'){ saveScore(); return; }
+  if(a==='save-o2o'){ saveO2O(); return; }
+  if(a==='save-replacement'){ saveReplacement(); return; }
+  if(a==='submit-report'){ submitReport(t.dataset.role); return; }
+  if(a==='advance-rep'){ advanceRep(t.dataset.id); return; }
+  if(a==='toggle-onboard'){ toggleOnboard(t.dataset.id,+t.dataset.idx); return; }
+});
+
+function saveMember(){
+  const name=val('mName'),email=val('mEmail'),role=val('mRole'),pod=val('mPod');
+  if(!name||!email){ toast('Name and email required'); return; }
+  const mgr = role==='setter'||role==='closer' ? (STATE.members.find(m=>m.role==='coach'&&m.pod===pod)||{}).id
+            : role==='coach' ? (STATE.members.find(m=>m.role==='tl')||{}).id
+            : role==='tl' ? (STATE.members.find(m=>m.role==='bp')||{}).id
+            : (STATE.members.find(m=>m.role==='owner')||{}).id;
+  STATE.members.push({id:uid('u'),name,email,pin:'1234',role,pod:pod||null,mgr:mgr||null,status:'training',start:new Date().toISOString().slice(0,10)});
+  db.save(); closeModal(); toast(name+' added'); render();
+}
+function saveScore(){
+  const repId=val('scRep'); const m=member(repId); const type=m.role==='closer'?'call':'message';
+  const crit = type==='call'?['Rapport & frame','Discovery depth','Qualification','Value framing','Objection honesty','Clear next step','Pressure-free close','Accuracy & honesty']:['Personalisation','ICP accuracy','Honesty','Clarity','Brevity','Pressure-free'];
+  const scores={}; let filled=0; crit.forEach(c=>{scores[c]=segState[c]||0; if(segState[c])filled++;});
+  if(filled<crit.length){ toast('Score every criterion'); return; }
+  const total=Object.values(scores).reduce((a,b)=>a+b,0); const max=crit.length*5; const p=Math.round(total/max*100);
+  STATE.scorecards.push({id:uid('sc'),repId,type,date:WK,scores,total,max,pct:p,flag:p>=85?'green':p>=75?'amber':'red',assessor:STATE.session,note:''});
+  // reflect red on member status
+  if(p<75) m.status='red'; else if(p<85&&m.status==='red') m.status='amber'; else if(p>=85&&['amber','red'].includes(m.status)) m.status='active';
+  sbPersist('scorecards',STATE.scorecards[STATE.scorecards.length-1]); sbPersistExt(m); db.save(); closeModal(); toast('Scorecard filed · '+p+'%'); render();
+}
+function saveO2O(){
+  const repId=val('oRep'),worked=val('oWorked'),improve=val('oImprove'),block=val('oBlock');
+  if(!worked){ toast('Add at least what worked'); return; }
+  STATE.oneToOnes.push({id:uid('o'),coachId:STATE.session,repId,date:WK,worked,improve,block:block||'None'});
+  // increment coach 1:1 count this week
+  const k=kpiFor(STATE.session); if(k&&k.role==='coach') k.oneToOnes++;
+  sbPersist('one_to_ones',STATE.oneToOnes[STATE.oneToOnes.length-1]); db.save(); closeModal(); toast('1:1 logged'); render();
+}
+function saveReplacement(){
+  const candidateId=val('rCand'),forRole=val('rRole'),trainerId=val('rTrainer');
+  STATE.replacements.push({id:uid('rep'),candidateId,forRole,trainerId,stage:1,week:0,status:'On track',log:[{week:0,covered:'Candidate identified'}],proof:[],blockers:'None'});
+  const m=member(candidateId); if(m)m.status='training';
+  sbPersist('replacements',STATE.replacements[STATE.replacements.length-1]); sbPersistExt(member(candidateId)); db.save(); closeModal(); toast('Protocol started'); render();
+}
+function submitReport(role){
+  const f=document.getElementById('repForm'); if(!f)return;
+  const data={}; f.querySelectorAll('[name]').forEach(i=>data[i.name]=i.value);
+  const existing=STATE.reports.find(r=>r.authorId===STATE.session&&r.week===WK);
+  if(existing){ existing.data=data; existing.submittedAt=new Date().toISOString().slice(0,10); }
+  else STATE.reports.push({id:uid('r'),authorId:STATE.session,role,week:WK,submittedAt:new Date().toISOString().slice(0,10),data});
+  const _rp=existing||STATE.reports[STATE.reports.length-1]; sbPersist('reports',_rp); db.save(); toast('Report submitted'); render();
+}
+function advanceRep(id){
+  const r=STATE.replacements.find(x=>x.id===id); if(!r)return;
+  r.stage=Math.min(4,r.stage+1); r.week+=2;
+  if(r.stage===4){ r.status='Signed off'; const m=member(r.candidateId); if(m){ m.role=r.forRole; m.status='active'; } toast(member(r.candidateId).name+' signed off → '+LADDER[r.forRole].label); }
+  else toast('Advanced to stage '+r.stage);
+  sbPersist('replacements',r); const _am=member(r.candidateId); if(_am) sbPersistExt(_am);
+  db.save(); render();
+}
+function toggleOnboard(id,idx){
+  const o=STATE.onboard.find(x=>x.id===id); if(!o)return;
+  o.items[idx].done=!o.items[idx].done;
+  if(o.items.every(i=>i.done)){ const m=member(o.memberId); if(m&&m.status==='training')m.status='active'; }
+  sbPersist('onboard',o); const _om=member(o.memberId); if(_om) sbPersistExt(_om);
+  db.save(); render();
+}
+const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastT;
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),2600); }
+
+
+/* ---------- brand mark ---------- */
+const LOGO = "data:image/png;base64,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";
+/* ---------- training data ---------- */
+const TRAINING = {"setter": {"id": "setter", "name": "Setter Academy", "tagline": "Find, qualify, open, hand off. The complete setter operating standard.", "exam": {"pass": 80, "title": "Setter Certification Exam"}, "modules": [{"id": "set-01", "title": "How It Works", "overview": "Your role, the lead flow, where your job ends, and how you are paid. Get this exact before anything else.", "objectives": ["I know my role: find, qualify, open, and hand off — I do NOT close", "I can name all 6 steps of the lead flow in order", "I know my job ends at Step 5 (Notify Ayden) — Ayden owns the prospect after", "I understand the commission table and that it doubles if I set AND close", "I know commission is paid the month after first payment clears, not on refunds"]}, {"id": "set-02", "title": "Tier 1 — The Sales Foundation (£2,500)", "overview": "The Capped Employee. Who they are, the signals that mark them, and how you open the conversation.", "objectives": ["I can describe the 'Capped Employee' ICP from memory", "I know the target profile and the disqualifiers", "I know the Instagram and LinkedIn signals to look for", "I've practised all outreach + follow-up scripts in my own words"]}, {"id": "set-03", "title": "Tier 2 — The Sales Coach (£5,000)", "overview": "The Trapped High Performer. The rep who hits target but feels the ceiling.", "objectives": ["I can describe the 'Trapped High Performer' ICP from memory", "I know the target profile and the disqualifiers", "I know the goldmine high-intent signals to look for", "I've practised all outreach + follow-up scripts in my own words"]}, {"id": "set-04", "title": "Tier 3 — The Sales Business (£10,000)", "overview": "The Capable Operator Without a Model. Skilled and credible, but no architecture to scale.", "objectives": ["I can describe the 'Capable Operator Without a Model' ICP from memory", "I know the target profile and the disqualifiers", "I know the goldmine high-intent signals to look for", "I've practised all outreach + follow-up scripts in my own words"]}, {"id": "set-05", "title": "Conversation Rules & Handoff", "overview": "The non-negotiables: honesty on price, message discipline, and a clean handoff to Ayden.", "objectives": ["I always tell prospects the price if they ask — I never hide it", "I don't pitch the full programme in DMs — I share the overview and form when they're genuinely interested", "I keep to max 3 messages to a non-responder: Day 1, Day 3, Day 7", "I work one platform at a time per prospect", "I notify Ayden the moment a form is submitted (name, tier, 2-line summary)", "I ask the qualifying question before sending anything", "I update the pipeline tracker daily"]}], "quiz": [{"q": "What is a setter's role?", "o": ["Find, qualify, open, and hand off", "Close the sale on a call", "Run the onboarding after payment", "Manage the pipeline for closers"], "a": 0, "e": "You open the relationship — Ayden closes it. Your job ends at the handoff."}, {"q": "At which step does a setter's job end?", "o": ["Step 3 — Conversation", "Step 4 — Send the form", "Step 5 — Notify Ayden", "Step 6 — Ayden takes over"], "a": 2, "e": "Your job ends at Step 5. Once you notify Ayden, he owns the prospect."}, {"q": "What is the commission on a Tier 1 (Sales Foundation) close?", "o": ["£250", "£500", "£1,000", "£1,500"], "a": 1, "e": "Tier 1 is £2,500 and pays £500 per close."}, {"q": "What is the commission on a Tier 3 (Sales Business) close?", "o": ["£1,000", "£1,500", "£2,000", "£3,000"], "a": 1, "e": "Tier 3 is £10,000 and pays £1,500 per close (£3,000 if you also set it)."}, {"q": "What happens to commission if you both set AND close the same deal?", "o": ["It stays the same", "It increases by 50%", "It doubles", "You get a flat bonus"], "a": 2, "e": "Set and close the same deal and commission doubles: £1,000 / £2,000 / £3,000."}, {"q": "What is the Tier 1 ICP called?", "o": ["The Capped Employee", "The Trapped High Performer", "The Capable Operator", "The Ambitious Graduate"], "a": 0, "e": "Tier 1 targets 'The Capped Employee' — working hard but earning the same regardless of effort."}, {"q": "What is the Tier 2 ICP called?", "o": ["The Capped Employee", "The Trapped High Performer", "The Capable Operator Without a Model", "The Solo Closer"], "a": 1, "e": "Tier 2 targets 'The Trapped High Performer' — hitting targets but aware of an income ceiling."}, {"q": "What is the Tier 3 ICP called?", "o": ["The Capped Employee", "The Trapped High Performer", "The Capable Operator Without a Model", "The Scaling Founder"], "a": 2, "e": "Tier 3 targets 'The Capable Operator Without a Model' — skills and credibility but no architecture to scale."}, {"q": "A prospect asks the price in the DMs. What do you do?", "o": ["Tell them the price honestly", "Redirect to the form without answering", "Give a rough ballpark", "Ask Ayden first then reply"], "a": 0, "e": "Always answer the price if asked — we never hide it. Then offer to walk them through which tier fits before they decide anything."}, {"q": "What is the maximum number of messages to a non-responder?", "o": ["2 — Day 1, Day 5", "3 — Day 1, Day 3, Day 7", "4 — Day 1, 3, 7, 14", "As many as needed"], "a": 1, "e": "Max 3 total: first message, Day 3, Day 7 — then stop."}, {"q": "When should you notify Ayden after a form is submitted?", "o": ["At the end of the day", "Within 24 hours", "Immediately — WhatsApp, don't wait", "Only if they seem hot"], "a": 2, "e": "Notify Ayden the moment a form is submitted — name, tier, and a 2-line summary."}, {"q": "When a prospect responds positively, what do you do FIRST?", "o": ["Send the form straight away", "Pitch the programme", "Ask one qualifying question", "Give them the price"], "a": 2, "e": "Do not pitch. Ask one qualifying question first, then send the form if they're a fit."}, {"q": "Why does the form exist?", "o": ["To collect payment", "So Ayden handles the pitch — it's your handoff", "To filter out time-wasters only", "To book the onboarding"], "a": 1, "e": "The form is the handoff. You don't pitch in DMs — the form means Ayden handles the pitch."}, {"q": "Should you DM on Instagram and connect on LinkedIn at the same time?", "o": ["Yes, double the touchpoints", "No — one platform at a time", "Only for Tier 3", "Only if they don't reply"], "a": 1, "e": "One platform at a time. Don't DM and connect simultaneously."}]}, "closer": {"id": "closer", "name": "Closer Academy", "tagline": "Take the warm lead and close it cleanly. The complete closer operating standard.", "exam": {"pass": 80, "title": "Closer Certification Exam"}, "modules": [{"id": "cls-01", "title": "How Closing Works", "overview": "Where your job starts, what is and isn't yours, the mindset, and the close-rate standard.", "objectives": ["I know my job starts where the setter's ends — a warm, form-submitted lead", "I know my responsibilities and what is NOT my responsibility", "I understand the commission table and the doubling rule", "I've internalised the closer's mindset — a clean no beats a refund", "I know the target close rate is 40%+ (review below 30%)"]}, {"id": "cls-02", "title": "Pre-Call Preparation", "overview": "The 7-step prep that wins the call before it starts. Never wing it.", "objectives": ["I complete the full 7-step pre-call checklist before every call", "I read the full application form before saying hello", "I read the setter's WhatsApp notes for tone", "I note 2–3 specific things from the form to reference on the call", "I'm in position 5 minutes early, camera on, environment set"]}, {"id": "cls-03", "title": "The Call Framework — 8 Stages", "overview": "Open, Discovery, Diagnosis Summary, Presentation, Investment, Objections, Close, Post-call. Each stage earns the next.", "objectives": ["I can name all 8 stages in order without looking", "Stage 1 Open — I set the frame and get a yes to it", "Stage 2 Discovery — I listen more than I talk (under 40% me)", "Stage 3 Diagnosis Summary — I reflect back and wait for confirmation", "Stage 4 Presentation — I connect every element to discovery", "Stage 5 Investment — I state price clearly then stop talking", "Stage 6 Objections — I use the formula", "Stage 7 Close — I ask directly, I don't hint", "Stage 8 Post-call — I do the actions immediately"]}, {"id": "cls-04", "title": "Objection Handling — 8 Objections", "overview": "Acknowledge, Explore, Answer, Re-close. Find the real objection — it's almost never the stated one.", "objectives": ["I know the formula: Acknowledge → Explore → Answer → Re-close", "I find the real objection — it's almost never the stated one", "I can handle 'too expensive' (timing vs value)", "I can handle 'need to think' / 'speak to partner' / 'no time'", "I can handle 'tried before' / 'what if it doesn't work' / 'not ready'", "I never agree a payment plan without Ayden's approval", "I always end with a re-close"]}, {"id": "cls-05", "title": "SOPs & Operating System", "overview": "The daily schedule, no-show protocol, payment and notification rules, and the Friday review.", "objectives": ["I follow the daily schedule: prep, call blocks, post-call, follow-up", "I follow the no-show protocol and never chase more than twice", "I send the Stripe link within 5 minutes of a close", "I notify Ayden of every outcome within 30 minutes", "I know what to NEVER do (no discounting/promises without approval)", "I update the pipeline tracker before the next call", "I complete the Friday weekly review and share it with Ayden"]}], "quiz": [{"q": "What kind of lead does a closer receive?", "o": ["A cold prospect to qualify", "A warm lead who's submitted the form and is booked", "A list of names to call", "A referral from a past client"], "a": 1, "e": "You receive a warm lead who has submitted the application form and is booked — interested, not yet sold."}, {"q": "What is the target close rate on qualified leads?", "o": ["20%+", "30%+", "40%+", "60%+"], "a": 2, "e": "Target is 40%+. Below 30% consistently means something needs reviewing."}, {"q": "How many stages are in the Call Framework?", "o": ["5", "6", "8", "10"], "a": 2, "e": "Eight stages: Open → Discovery → Summary → Present → Price → Objections → Close → Post-call."}, {"q": "What is the correct order of the first four stages?", "o": ["Discovery → Open → Present → Summary", "Open → Discovery → Diagnosis Summary → Presentation", "Open → Present → Discovery → Price", "Discovery → Summary → Open → Present"], "a": 1, "e": "Open → Discovery → Diagnosis Summary → Presentation. Each stage earns the next."}, {"q": "In a great call, how much of the time should you be talking?", "o": ["Less than 40%", "About 50%", "60–70%", "As much as needed"], "a": 0, "e": "You talk less than 40% of the time in a great call — discovery is where the close is built."}, {"q": "What should you do immediately after stating the price?", "o": ["Justify why it's worth it", "Offer a discount", "Stop talking and let them respond", "Move to the close"], "a": 2, "e": "State the price clearly, don't apologise, then stop talking. The silence is theirs to fill."}, {"q": "What is the objection-handling formula?", "o": ["Listen → Pitch → Close", "Acknowledge → Explore → Answer → Re-close", "Explore → Discount → Close", "Answer → Acknowledge → Move on"], "a": 1, "e": "Acknowledge → Explore → Answer → Re-close. Every sequence ends with a re-close."}, {"q": "What's the key rule about objections?", "o": ["Always answer the stated objection fast", "The real objection is almost never the stated one", "Never explore — just answer", "Most objections mean a no"], "a": 1, "e": "The real objection is almost never the stated one. Explore before you answer."}, {"q": "A prospect asks for a payment plan. What do you do?", "o": ["Agree to split it in two", "Decline outright", "Don't agree without Ayden's authorisation — explore what's driving it", "Offer a discount instead"], "a": 2, "e": "Never agree a payment plan without Ayden's approval. Explore the driver, then check with Ayden."}, {"q": "How quickly should you send the Stripe link after a close?", "o": ["Within 5 minutes", "Within 1 hour", "By end of day", "Next morning"], "a": 0, "e": "Send the correct Stripe link within 5 minutes of the call ending."}, {"q": "After a no-show, how many times do you chase?", "o": ["Until they reply", "Never", "No more than twice, then mark Dormant", "Once a day for a week"], "a": 2, "e": "Wait 5 mins and message, one final message after 24h, then after two no-shows mark Dormant. Never chase more than twice."}, {"q": "How long before a call should you be in position?", "o": ["At the start time", "5 minutes early", "15 minutes early", "Whenever you log on"], "a": 1, "e": "Be in position 5 minutes before the call — not logging on at the start time."}, {"q": "What must you do before saying hello on a call?", "o": ["Read the full application form", "Send the Stripe link", "Set a follow-up date", "Email the prospect"], "a": 0, "e": "Read the application form in full — understand their situation before you say hello."}, {"q": "Within how long must you notify Ayden of a call outcome?", "o": ["5 minutes", "30 minutes", "2 hours", "End of day"], "a": 1, "e": "Never wait more than 30 minutes to notify Ayden of a call outcome."}, {"q": "Which of these should you NEVER do?", "o": ["Get a clear yes or no", "Make income promises not in writing", "Send a Stripe link after confirming the tier", "Let silence sit after the price"], "a": 1, "e": "Never make promises about income or results that aren't in writing."}]}};
+/* ============================================================
+   REP TRAINING  (built into the MOS)
+   Setter & Closer academies — lessons + certification exam.
+   Completion certifies the rep and ticks their onboarding.
+   ============================================================ */
+let TQ=null, REVIEW=null, CERT=null;
+
+function trainEnsure(mid){ if(!STATE.training) STATE.training={}; if(!STATE.training[mid]) STATE.training[mid]={}; return STATE.training[mid]; }
+function trainRec(mid,unitId){ return ((STATE.training||{})[mid]||{})[unitId]; }
+function academyForRole(role){ return role==='setter'?TRAINING.setter : role==='closer'?TRAINING.closer : null; }
+function trainUnits(track){
+  if(!track) return [];
+  const u=track.modules.map(m=>({id:m.id,title:m.title,kind:'lesson',module:m}));
+  if(track.quiz) u.push({id:track.id+'-exam',title:(track.exam&&track.exam.title)||'Certification Exam',kind:'exam',quiz:track.quiz,pass:(track.exam&&track.exam.pass)||80});
+  return u;
+}
+function trainUnitDone(track,unit,mid){
+  const p=trainRec(mid,unit.id);
+  if(unit.kind==='lesson'){ const items=unit.module.objectives||[]; const cl=(p&&p.checklist)||{}; return items.length>0 && items.every((_,i)=>cl[i]); }
+  return !!(p&&p.passed);
+}
+function trainPct(track,mid){ const u=trainUnits(track); if(!u.length)return 0; return Math.round(u.filter(x=>trainUnitDone(track,x,mid)).length/u.length*100); }
+function trainCertified(track,mid){ const u=trainUnits(track); return u.length>0 && u.every(x=>trainUnitDone(track,x,mid)); }
+function trainExamScore(track,mid){ const p=trainRec(mid,track.id+'-exam'); return p&&typeof p.score==='number'?p.score:null; }
+function trainResumeUnit(track,mid){ for(const x of trainUnits(track)){ if(!trainUnitDone(track,x,mid)) return x; } return null; }
+function fmtCertDate(mid,track){ const p=trainRec(mid,track.id+'-exam'); const d=new Date(p&&p.completedAt?p.completedAt:Date.now()); return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}); }
+
+function trainBadge(m){
+  const tr=academyForRole(m.role); if(!tr) return '<span class="muted">—</span>';
+  if(trainCertified(tr,m.id)) return '<span class="flag green"><span class="dot"></span>Certified</span>';
+  const pct=trainPct(tr,m.id); return `<span class="flag ${pct>0?'amber':'lvl'}"><span class="dot"></span>${pct>0?pct+'%':'Not started'}</span>`;
+}
+
+/* real brand mark (overrides the placeholder SVG) */
+function markSVG(size){ return `<img class="mark mark-img" src="${LOGO}" width="${size}" height="${size}" alt="Shevlin">`; }
+
+/* manager dashboard: team training summary */
+function trainTeamCardHTML(u){
+  const reps=visibleMembers(u).filter(m=>['setter','closer'].includes(m.role));
+  if(!reps.length) return '';
+  const cert=reps.filter(m=>trainCertified(academyForRole(m.role),m.id)).length;
+  const pct=Math.round(reps.reduce((a,m)=>a+trainPct(academyForRole(m.role),m.id),0)/reps.length);
+  return `<div style="height:18px"></div><div class="panel redtop">
+    <div class="p-head"><h3>Team training</h3><span class="spacer"></span><span class="flag ${cert===reps.length?'green':'amber'}"><span class="dot"></span>${cert}/${reps.length} certified</span></div>
+    <p class="p-sub">Average progress across your reps — the academies certify the standard before the pipeline does.</p>
+    <div class="bar ${cert===reps.length?'g':''}" style="margin-bottom:14px"><i style="width:${pct}%"></i></div>
+    <button class="btn btn-red btn-sm" data-action="goto" data-key="train">Open team training</button>
+  </div>`;
+}
+
+/* rep dashboard card */
+function trainCardHTML(u){
+  const track=academyForRole(u.role); if(!track) return '';
+  const mid=u.id, pct=trainPct(track,mid), done=trainCertified(track,mid);
+  return `<div style="height:18px"></div><div class="panel redtop">
+    <div class="p-head"><h3>Your training</h3><span class="spacer"></span>${done?'<span class="flag green"><span class="dot"></span>Certified</span>':`<span class="flag ${pct>0?'amber':'lvl'}"><span class="dot"></span>${pct}%</span>`}</div>
+    <p class="p-sub">${track.name} — the standard you operate to.</p>
+    <div class="bar ${done?'g':''}" style="margin-bottom:14px"><i style="width:${pct}%"></i></div>
+    <button class="btn btn-red btn-sm" data-action="goto" data-key="train">${done?'Review training':(pct>0?'Continue training':'Start training')}</button>
+  </div>`;
+}
+
+/* ---------- TRAINING view ---------- */
+views.train=function(){
+  const u=me();
+  if(CERT) return certView();
+  if(TQ && TQ.active) return trainQuizView();
+  if(['setter','closer'].includes(u.role)) return academyView(academyForRole(u.role), u.id, false);
+  if(REVIEW) return academyView(TRAINING[REVIEW], u.id, true);
+  return trainManagerView(u);
+};
+
+function academyView(track, mid, reviewer){
+  if(!track) return '<div class="empty">No academy for this role.</div>';
+  const units=trainUnits(track), pct=trainPct(track,mid), done=trainCertified(track,mid), exScore=trainExamScore(track,mid);
+  let html='';
+  if(reviewer) html+=`<button class="btn btn-ghost btn-sm" data-action="train-team" style="margin-bottom:14px">← Team training</button>`;
+  html+=`<div class="panel redtop" style="margin-bottom:18px">
+    <div class="p-head"><h3>${track.name}</h3><span class="spacer"></span>${done?'<span class="flag green"><span class="dot"></span>Certified</span>':`<span class="flag ${pct>0?'amber':'lvl'}"><span class="dot"></span>${pct}%</span>`}</div>
+    <p class="p-sub">${track.tagline}</p>
+    <div class="bar ${done?'g':''}"><i style="width:${pct}%"></i></div>
+    ${done?`<button class="btn btn-ghost btn-sm" data-action="train-cert" data-track="${track.id}" data-mid="${mid}" style="margin-top:14px">View certificate</button>`:''}
+  </div>`;
+  track.modules.forEach((m,li)=>{
+    const items=m.objectives||[], cl=(trainRec(mid,m.id)||{}).checklist||{};
+    const ldone=items.length>0 && items.every((_,i)=>cl[i]);
+    html+=`<div class="panel" style="margin-bottom:12px">
+      <div class="p-head"><span class="p-title">${li+1}. ${m.title}</span><span class="spacer"></span>${ldone?'<span class="flag green"><span class="dot"></span>Done</span>':'<span class="flag lvl"><span class="dot"></span>Lesson</span>'}</div>
+      <p class="p-sub">${m.overview}</p>
+      ${items.map((o,i)=>`<div class="check ${cl[i]?'on':''}" data-action="train-check" data-track="${track.id}" data-mid="${mid}" data-mod="${m.id}" data-i="${i}"><div class="box"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div><div class="lbl">${o}</div></div>`).join('')}
+    </div>`;
+  });
+  const ex=units.find(x=>x.kind==='exam');
+  if(ex){
+    const passed=trainUnitDone(track,ex,mid);
+    const right = passed?`<span class="flag green"><span class="dot"></span>Passed · ${exScore}%</span>`
+      : (exScore!=null?`<span class="flag amber"><span class="dot"></span>${exScore}% · retry</span>`:`<span class="flag lvl"><span class="dot"></span>${ex.quiz.length} questions</span>`);
+    html+=`<div class="panel redtop">
+      <div class="p-head"><span class="p-title">${ex.title}</span><span class="spacer"></span>${right}</div>
+      <p class="p-sub">${ex.quiz.length} questions · ${ex.pass}% to pass. Work through the lessons first.</p>
+      <button class="btn btn-red btn-sm" data-action="train-exam" data-track="${track.id}" data-mid="${mid}">${passed?'Retake exam':'Start exam'}</button>
+    </div>`;
+  }
+  return html;
+}
+
+function trainManagerView(u){
+  const reps=visibleMembers(u).filter(m=>['setter','closer'].includes(m.role));
+  const rows=reps.map(m=>{
+    const tr=academyForRole(m.role), pct=trainPct(tr,m.id), cert=trainCertified(tr,m.id), ex=trainExamScore(tr,m.id);
+    const st=cert?'<span class="flag green"><span class="dot"></span>Certified</span>':(pct>0?'<span class="flag amber"><span class="dot"></span>In training</span>':'<span class="flag lvl"><span class="dot"></span>Not started</span>');
+    return `<tr>
+      <td><div class="who-cell"><div class="av">${initials(m.name)}</div><div><b>${m.name}</b><small>${LADDER[m.role].label}</small></div></div></td>
+      <td>${tr.name.replace(' Academy','')}</td>
+      <td style="min-width:150px"><div style="display:flex;align-items:center;gap:8px"><div class="bar ${cert?'g':''}" style="flex:1"><i style="width:${pct}%"></i></div><span class="num" style="font-size:12px;color:var(--grey)">${pct}%</span></div></td>
+      <td class="rt num">${ex!=null?ex+'%':'—'}</td>
+      <td class="rt">${st}</td></tr>`;
+  }).join('');
+  const certCount=reps.filter(m=>trainCertified(academyForRole(m.role),m.id)).length;
+  return `<div class="grid g-3 stagger" style="margin-bottom:18px">
+      <div class="metric"><div class="ml">Field reps</div><div class="mv tnum">${reps.length}</div></div>
+      <div class="metric"><div class="ml">Certified</div><div class="mv tnum">${certCount}</div></div>
+      <div class="metric"><div class="ml">In training</div><div class="mv tnum">${reps.length-certCount}</div></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><h3>Team training</h3><span class="spacer"></span>
+        <button class="btn btn-ghost btn-sm" data-action="open-academy" data-track="setter">Setter Academy</button>
+        <button class="btn btn-ghost btn-sm" data-action="open-academy" data-track="closer">Closer Academy</button>
+      </div>
+      <p class="p-sub">Where each rep stands against the operating standard. Passing the exam certifies the rep and ticks their onboarding.</p>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Rep</th><th>Academy</th><th>Progress</th><th class="rt">Exam</th><th class="rt">Status</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5"><div class="empty">No field reps in scope.</div></td></tr>'}</tbody></table></div>
+    </div>`;
+}
+
+/* ---------- exam quiz ---------- */
+function trainStartExam(mid,trackId){
+  const track=TRAINING[trackId]; const ex=trainUnits(track).find(x=>x.kind==='exam'); if(!ex) return;
+  TQ={active:true,trackId,mid,qs:ex.quiz,idx:0,answers:new Array(ex.quiz.length),correct:0,pass:ex.pass,title:ex.title,done:false};
+  CERT=null; setView('train');
+}
+function trainAnswer(i){ if(!TQ||TQ.done) return; if(TQ.answers[TQ.idx]!=null) return; TQ.answers[TQ.idx]=i; if(i===TQ.qs[TQ.idx].a) TQ.correct++; setView('train'); }
+function trainNext(){ if(!TQ) return; if(TQ.idx<TQ.qs.length-1) TQ.idx++; else trainFinalize(); setView('train'); }
+function trainFinalize(){
+  if(TQ.done) return; TQ.done=true;
+  const score=Math.round(TQ.correct/TQ.qs.length*100), passed=score>=TQ.pass;
+  const t=trainEnsure(TQ.mid), prev=t[TQ.trackId+'-exam']||{};
+  t[TQ.trackId+'-exam']={passed:!!(prev.passed||passed),score:Math.max(prev.score||0,score),attempts:(prev.attempts||0)+1,completedAt:Date.now()};
+  TQ.lastScore=score; TQ.lastPass=passed;
+  if(passed){ const ob=STATE.onboard.find(o=>o.memberId===TQ.mid); if(ob){ ob.items.forEach(it=>{ if(/quiz|fundamental|exam/i.test(it.label)) it.done=true; }); if(ob.items.every(i=>i.done)){ const mm=member(ob.memberId); if(mm&&mm.status==='training') mm.status='active'; } sbPersist('onboard',ob); } const _tm=member(TQ.mid); if(_tm) sbPersistExt(_tm); }
+  sbPersist('training',{member_id:TQ.mid,unit_id:TQ.trackId+'-exam',payload:t[TQ.trackId+'-exam']});
+  db.save();
+  const track=TRAINING[TQ.trackId];
+  if(passed && trainCertified(track,TQ.mid)) setTimeout(()=>toast(member(TQ.mid).name.split(' ')[0]+' certified · '+track.name),250);
+}
+function trainQuizExit(){ TQ=null; setView('train'); }
+function trainQuizView(){
+  const track=TRAINING[TQ.trackId];
+  if(!TQ.done){
+    const item=TQ.qs[TQ.idx], sel=TQ.answers[TQ.idx], answered=sel!=null;
+    const opts=item.o.map((o,i)=>{ let cls='opt', badge=String.fromCharCode(65+i);
+      if(answered){ if(i===item.a){cls+=' correct';badge='✓';} else if(i===sel){cls+=' wrong';badge='✕';} } else if(i===sel) cls+=' sel';
+      return `<button class="${cls}" ${answered?'disabled':''} data-action="tq-answer" data-i="${i}"><span class="ob">${badge}</span><span>${item.o[i]}</span></button>`;
+    }).join('');
+    const expl=answered?`<div class="explain show"><b>Why:</b> ${item.e}</div>`:'';
+    const last=TQ.idx===TQ.qs.length-1;
+    return `<div class="qwrap">
+      <button class="btn btn-ghost btn-sm" data-action="tq-exit" style="margin-bottom:12px">← Exit exam</button>
+      <div class="qprog"><div class="bar" style="flex:1"><i style="width:${Math.round(TQ.idx/TQ.qs.length*100)}%"></i></div><span class="qc">${TQ.idx+1} / ${TQ.qs.length}</span></div>
+      <div class="qcard"><div class="qnum">${track.name} · Question ${TQ.idx+1}</div><div class="qtext">${item.q}</div>${opts}${expl}
+        <div class="qfoot"><span class="qc tnum" style="color:var(--grey)">${TQ.correct} correct</span>${answered?`<button class="btn btn-red" data-action="tq-next">${last?'See result':'Next'} →</button>`:'<span class="muted" style="font-size:13px">Choose an answer to continue.</span>'}</div>
+      </div></div>`;
+  }
+  const score=TQ.lastScore, passed=TQ.lastPass, certified=trainCertified(track,TQ.mid);
+  return `<div class="qwrap"><div class="panel redtop result">
+    <div class="score ${passed?'pass':'fail'} tnum">${score}%</div>
+    <div class="verdict" style="color:${passed?'#7fe3b0':'#f3a3a3'}">${passed?'Passed':'Not yet'}</div>
+    <p>${passed?`Above the ${TQ.pass}% pass mark${certified?' — academy complete.':'.'}`:`You need ${TQ.pass}% to pass. Review the lessons and try again — you've got this.`}</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px">
+      <button class="btn btn-ghost" data-action="train-exam" data-track="${TQ.trackId}" data-mid="${TQ.mid}">Retry</button>
+      ${certified?`<button class="btn btn-red" data-action="train-cert" data-track="${TQ.trackId}" data-mid="${TQ.mid}">View certificate</button>`:'<button class="btn btn-red" data-action="tq-exit">Back to academy</button>'}
+    </div></div></div>`;
+}
+
+/* ---------- certificate ---------- */
+function certView(){
+  const track=TRAINING[CERT.trackId], m=member(CERT.mid);
+  return `<button class="btn btn-ghost btn-sm no-print" data-action="train-cert-back" style="margin-bottom:14px">← Back</button>
+  <div class="cert">
+    <img class="clogo" src="${LOGO}" alt="">
+    <div class="ck">Certificate of Completion</div>
+    <h2>${track.name}</h2>
+    <div class="cmeta">This certifies that</div>
+    <div class="cname">${m.name}</div>
+    <div class="cmeta">has completed every lesson and passed the certification exam to the Shevlin Coaching standard.</div>
+    <div class="csig"><div style="text-align:left">Awarded<br><b>${fmtCertDate(CERT.mid,track)}</b></div><div style="text-align:right">Issued by<br><b>Shevlin Coaching</b></div></div>
+  </div>
+  <div class="no-print" style="text-align:center;margin-top:18px"><button class="btn btn-ghost" data-action="print-page">Print / save as PDF</button></div>`;
+}
+
+/* ---------- lesson checklist toggle ---------- */
+function trainToggle(mid,trackId,modId,i){
+  const t=trainEnsure(mid), rec=t[modId]||(t[modId]={checklist:{}}); if(!rec.checklist) rec.checklist={};
+  rec.checklist[i]=!rec.checklist[i];
+  const track=TRAINING[trackId], unit=trainUnits(track).find(x=>x.id===modId);
+  if(unit && trainUnitDone(track,unit,mid)) rec.completedAt=Date.now();
+  sbPersist('training',{member_id:mid,unit_id:modId,payload:rec});
+  db.save(); setView('train');
+}
+
+/* ---------- demo seed ---------- */
+function seedTraining(){
+  const setter=TRAINING.setter, closer=TRAINING.closer;
+  const lesson=(mid,mod)=>{ const t=trainEnsure(mid); const cl={}; (mod.objectives||[]).forEach((_,i)=>cl[i]=true); t[mod.id]={checklist:cl,completedAt:Date.now()-86400000}; };
+  const exam=(mid,track,score)=>{ const t=trainEnsure(mid); t[track.id+'-exam']={passed:true,score,attempts:1,completedAt:Date.now()-86400000}; };
+  setter.modules.forEach(m=>lesson('u_liam',m)); exam('u_liam',setter,92);
+  setter.modules.forEach(m=>lesson('u_sofia',m));
+  closer.modules.forEach(m=>lesson('u_tom',m)); exam('u_tom',closer,88);
+  closer.modules.slice(0,3).forEach(m=>lesson('u_aisha',m));
+  setter.modules.slice(0,2).forEach(m=>lesson('u_noah',m));
+  lesson('u_mia',setter.modules[0]);
+}
+
+/* ---------- training actions ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]'); if(!t) return;
+  const a=t.dataset.action, d=t.dataset;
+  if(a==='train-check') trainToggle(d.mid,d.track,d.mod,+d.i);
+  else if(a==='train-exam') trainStartExam(d.mid,d.track);
+  else if(a==='tq-answer') trainAnswer(+d.i);
+  else if(a==='tq-next') trainNext();
+  else if(a==='tq-exit') trainQuizExit();
+  else if(a==='open-academy'){ REVIEW=d.track; TQ=null; CERT=null; setView('train'); }
+  else if(a==='train-team'){ REVIEW=null; setView('train'); }
+  else if(a==='train-cert'){ CERT={trackId:d.track,mid:d.mid}; TQ=null; setView('train'); }
+  else if(a==='train-cert-back'){ CERT=null; setView('train'); }
+  else if(a==='print-page') window.print();
+});
+
+
+/* ============================================================
+   AUTH + ROUTER
+   ============================================================ */
+function buildQuick(){
+  const order=['owner','bp','tl','coach','closer','setter'];
+  const q=document.getElementById('quickList'); q.innerHTML='';
+  order.forEach(role=>{ const m=STATE.members.find(x=>x.role===role); if(!m)return;
+    const b=document.createElement('button'); b.dataset.email=m.email;
+    b.innerHTML=`<span class="qn">${m.name.split(' ')[0]}</span><span class="qr">${LADDER[role].label}</span>`;
+    b.onclick=()=>{ document.getElementById('liEmail').value=m.email; document.getElementById('liPin').value=m.pin; doLogin(); };
+    q.appendChild(b);
+  });
+}
+function localDoLogin(){
+  const email=document.getElementById('liEmail').value.trim().toLowerCase();
+  const pin=document.getElementById('liPin').value.trim();
+  const m=STATE.members.find(x=>x.email.toLowerCase()===email && x.pin===pin);
+  if(!m){ document.getElementById('liErr').textContent='Email or PIN not recognised.'; return; }
+  document.getElementById('liErr').textContent='';
+  STATE.session=m.id; STATE.view='dashboard'; db.save(); mountApp();
+}
+function localLogout(){ STATE.session=null; db.save(); document.getElementById('shell').classList.remove('on'); document.getElementById('login').style.display='flex'; document.getElementById('liPin').value=''; }
+
+function buildNav(){
+  const u=me(); const items=navFor(u.role); const nav=document.getElementById('nav'); nav.innerHTML='';
+  let sec=''; 
+  items.forEach(it=>{
+    if(it.sec!==sec){ sec=it.sec; const h=document.createElement('div'); h.className='nav-sec'; h.textContent=sec; nav.appendChild(h); }
+    const b=document.createElement('button'); b.className='nav-item'+(STATE.view===it.key?' active':''); b.dataset.key=it.key;
+    let badge=''; 
+    if(it.key==='report'&&['owner','bp','tl','coach'].includes(u.role)){}
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${ICON[it.icon]}</svg><span>${it.label}</span>${badge}`;
+    b.onclick=()=>{ setView(it.key); if(window.innerWidth<=880) closeSide(); };
+    nav.appendChild(b);
+  });
+}
+function setView(key){
+  if(key!=='train'){ TQ=null; REVIEW=null; CERT=null; }
+  STATE.view=key; db.save();
+  document.getElementById('pageTitle').textContent=PAGE[key]||'';
+  const u=me();
+  document.getElementById('crumb').textContent = ['owner','bp'].includes(u.role)?'Operation':u.pod?u.pod:'My work';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.key===key));
+  document.getElementById('view').innerHTML=(views[key]||(()=> '<div class="empty">Coming soon.</div>'))();
+  document.getElementById('view').scrollTop=0; window.scrollTo(0,0);
+}
+function render(){ setView(STATE.view||'dashboard'); }
+
+function mountApp(){
+  const u=me();
+  document.getElementById('login').style.display='none';
+  document.getElementById('shell').classList.add('on');
+  document.getElementById('userName').textContent=u.name;
+  document.getElementById('userRole').textContent=LADDER[u.role].label;
+  document.getElementById('userAv').textContent=initials(u.name);
+  document.getElementById('wkLabel').textContent='Week of '+fmtWk(WK);
+  if(!navFor(u.role).some(n=>n.key===STATE.view)) STATE.view='dashboard';
+  buildNav(); render();
+}
+
+/* sidebar mobile */
+function openSide(){ document.getElementById('side').classList.add('open'); document.getElementById('scrim').classList.add('on'); }
+function closeSide(){ document.getElementById('side').classList.remove('open'); document.getElementById('scrim').classList.remove('on'); }
+document.getElementById('menuBtn').onclick=openSide;
+document.getElementById('scrim').onclick=closeSide;
+document.getElementById('logoutBtn').onclick=logout;
+document.getElementById('liBtn').onclick=doLogin;
+document.getElementById('liPin').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('liEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+window.SB_ON = (window.__FORCE_SB===true) || (CONFIG.SUPABASE_ANON_KEY.indexOf('PASTE')===-1 && CONFIG.SUPABASE_ANON_KEY.length>20);
+try{
+  document.getElementById('markLogin').innerHTML=markSVG(38);
+  document.getElementById('markSide').innerHTML=markSVG(34);
+}catch(e){}
+function localBoot(){ try{ load(); buildQuick(); if(STATE.session && me()) mountApp(); }catch(e){ var L=document.getElementById('login'); if(L) L.style.display='flex'; } }
+if(!window.SB_ON) localBoot();
+
+/* ============================================================
+   SUPABASE MODE — same login as the CRM.
+   One Supabase project (the CRM's). Auth = team's existing
+   email + password. Session lives in a cookie scoped to
+   .shevlincrm.co.uk so it carries across CRM and MOS.
+   ============================================================ */
+let sb=null;
+
+/* cookie storage adapter (chunked — Supabase sessions exceed one cookie) */
+const cookieStorage={
+  _domain(){ const h=location.hostname; return h.endsWith(CONFIG.COOKIE_DOMAIN.replace(/^\./,''))?'; Domain='+CONFIG.COOKIE_DOMAIN:''; },
+  _attrs(){ return this._domain()+'; Path=/; Max-Age=31536000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':''); },
+  _get(n){ const m=document.cookie.match(new RegExp('(?:^|; )'+n.replace(/[.$?*|{}()[\]\\\/+^]/g,'\\$&')+'=([^;]*)')); return m?decodeURIComponent(m[1]):null; },
+  getItem(key){
+    const meta=this._get(key+'.n'); if(meta==null) return this._get(key);
+    let out=''; for(let i=0;i<+meta;i++){ const c=this._get(key+'.'+i); if(c==null) return null; out+=c; } return out;
+  },
+  setItem(key,value){
+    this.removeItem(key);
+    const CH=3000, n=Math.ceil(value.length/CH);
+    if(n<=1){ document.cookie=key+'='+encodeURIComponent(value)+this._attrs(); return; }
+    for(let i=0;i<n;i++) document.cookie=key+'.'+i+'='+encodeURIComponent(value.slice(i*CH,(i+1)*CH))+this._attrs();
+    document.cookie=key+'.n='+n+this._attrs();
+  },
+  removeItem(key){
+    const kill=k=>{ document.cookie=k+'='+this._domain()+'; Path=/; Max-Age=0'; };
+    const meta=this._get(key+'.n');
+    if(meta!=null){ for(let i=0;i<+meta;i++) kill(key+'.'+i); kill(key+'.n'); }
+    kill(key);
+  }
+};
+
+/* role normalisation: CRM roles -> MOS ladder keys */
+function normRole(r){
+  r=String(r||'').toLowerCase().trim().replace(/[\s-]+/g,'_');
+  if(r==='admin'||r==='owner') return 'owner';
+  if(r==='bp'||r==='business_partner'||r==='partner') return 'bp';
+  if(r==='tl'||r==='team_leader'||r==='team_lead'||r==='teamleader') return 'tl';
+  if(r==='coach'||r==='sales_coach') return 'coach';
+  if(r==='closer') return 'closer';
+  if(r==='setter') return 'setter';
+  return null;
+}
+
+/* ---------- load everything from the project ---------- */
+async function sbLoadAll(uid){
+  const get=async t=>{ const {data,error}=await sb.from(t).select('*'); if(error){ toast(t+': '+error.message); return []; } return data||[]; };
+  const [profiles,ext,kpisLive,kpisManual,training,cards,reports,repl,o2o,onboard]=await Promise.all([
+    get('profiles'),get('mos_profile_ext'),get('mos_kpis_live'),get('mos_kpis'),get('mos_training'),
+    get('mos_scorecards'),get('mos_reports'),get('mos_replacements'),get('mos_one_to_ones'),get('mos_onboard')
+  ]);
+  // live CRM-derived weeks first; a manually-entered week for the same rep+week overrides (lets you correct)
+  const kmap={};
+  (kpisLive||[]).forEach(r=>{ kmap[r.rep_id+'|'+String(r.week).slice(0,10)]={rep_id:r.rep_id,week:r.week,role:r.role,metrics:r.metrics||{}}; });
+  (kpisManual||[]).forEach(r=>{ const k=r.rep_id+'|'+String(r.week).slice(0,10); kmap[k]={rep_id:r.rep_id,week:r.week,role:r.role,metrics:Object.assign({},(kmap[k]||{}).metrics,r.metrics||{})}; });
+  const kpis=Object.values(kmap);
+  const extBy={}; ext.forEach(e=>extBy[e.user_id]=e);
+  const members=profiles.map(p=>{
+    const role=normRole(p.role); if(!role) return null;
+    const e=extBy[p.id]||{};
+    return { id:p.id, name:p.full_name||p.name||p.display_name||(p.email?p.email.split('@')[0]:'—'),
+      email:p.email||'', pin:'', role, pod:e.pod||null, mgr:e.mgr||null,
+      status:e.status||'active', start:e.start_date||(p.created_at?String(p.created_at).slice(0,10):'') };
+  }).filter(Boolean);
+  const T={}; training.forEach(r=>{ (T[r.member_id]=T[r.member_id]||{})[r.unit_id]=r.payload||{}; });
+  STATE={ v:2, members,
+    kpis:kpis.map(r=>Object.assign({id:'k_'+r.rep_id+'_'+r.week,repId:r.rep_id,week:String(r.week).slice(0,10),role:r.role},r.metrics||{})),
+    scorecards:cards.map(r=>({id:r.id,repId:r.rep_id,type:r.type,date:String(r.date).slice(0,10),scores:r.scores||{},total:r.total,max:r.max,pct:r.pct,flag:r.flag,assessor:r.assessor,note:r.note||''})),
+    reports:reports.map(r=>({id:r.id,authorId:r.author_id,role:r.role,week:String(r.week).slice(0,10),submittedAt:r.submitted_at?String(r.submitted_at).slice(0,10):'',data:r.data||{}})),
+    replacements:repl.map(r=>({id:r.id,candidateId:r.candidate_id,forRole:r.for_role,trainerId:r.trainer_id,stage:r.stage,week:r.week,status:r.status,log:r.log||[],proof:r.proof||[],blockers:r.blockers||'None'})),
+    oneToOnes:o2o.map(r=>({id:r.id,coachId:r.coach_id,repId:r.rep_id,date:String(r.date).slice(0,10),worked:r.worked,improve:r.improve,block:r.block||'None'})),
+    onboard:onboard.map(r=>({id:r.id,memberId:r.member_id,role:r.role,items:r.items||[]})),
+    training:T, session:uid, view:'dashboard' };
+}
+
+/* ---------- write-through ---------- */
+function sbPersist(kind,obj){
+  if(!window.SB_ON||!sb||!obj) return;
+  const M={
+    scorecards:['mos_scorecards',o=>({id:o.id,rep_id:o.repId,type:o.type,date:o.date,scores:o.scores,total:o.total,max:o.max,pct:o.pct,flag:o.flag,assessor:o.assessor,note:o.note||''}),'id'],
+    one_to_ones:['mos_one_to_ones',o=>({id:o.id,coach_id:o.coachId,rep_id:o.repId,date:o.date,worked:o.worked,improve:o.improve,block:o.block}),'id'],
+    reports:['mos_reports',o=>({id:o.id,author_id:o.authorId,role:o.role,week:o.week,submitted_at:o.submittedAt||null,data:o.data}),'id'],
+    replacements:['mos_replacements',o=>({id:o.id,candidate_id:o.candidateId,for_role:o.forRole,trainer_id:o.trainerId,stage:o.stage,week:o.week,status:o.status,log:o.log,proof:o.proof,blockers:o.blockers}),'id'],
+    onboard:['mos_onboard',o=>({id:o.id,member_id:o.memberId,role:o.role,items:o.items}),'id'],
+    training:['mos_training',o=>o,'member_id,unit_id'],
+    kpis:['mos_kpis',o=>{ const m=Object.assign({},o); delete m.id; delete m.repId; delete m.week; delete m.role;
+      return {rep_id:o.repId,week:o.week,role:o.role,metrics:m}; },'rep_id,week']
+  }[kind];
+  if(!M) return;
+  sb.from(M[0]).upsert(M[1](obj),{onConflict:M[2]}).then(r=>{ if(r&&r.error) toast('Sync failed — '+r.error.message); });
+}
+function sbPersistExt(m){
+  if(!window.SB_ON||!sb||!m) return;
+  sb.from('mos_profile_ext').upsert({user_id:m.id,pod:m.pod,mgr:m.mgr,status:m.status,start_date:m.start||null},{onConflict:'user_id'})
+    .then(r=>{ if(r&&r.error) toast('Sync failed — '+r.error.message); });
+}
+
+/* ---------- "Update my week" (reps log their numbers until CRM derivation is wired) ---------- */
+function kpiBar(u){
+  if(!['setter','closer'].includes(u.role)) return '';
+  return `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-ghost btn-sm" data-action="kpi-week">Update my week</button></div>`;
+}
+function modalKpi(){
+  const u=me(); const k=kpiFor(u.id)||{};
+  const fields=u.role==='setter'
+    ?[['profiles','Profiles qualified'],['firstMsgs','First messages'],['followUps','Follow-ups'],['forms','Forms submitted']]
+    :[['callsTaken','Calls taken'],['closes','Closes'],['revenue','Revenue (£)'],['commission','Commission (£)']];
+  openModal('Update my week',
+    fields.map(f=>`<div class="field"><label>${f[1]}</label><input id="kpi_${f[0]}" type="number" min="0" inputmode="numeric" value="${k[f[0]]!=null?k[f[0]]:''}" placeholder="0"></div>`).join('')+
+    `<p class="muted" style="font-size:12.5px">Week of ${fmtWk(WK)}. Once the CRM feed is wired these fill themselves.</p>`,
+    `<button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-red" data-action="kpi-save">Save week</button>`);
+}
+function kpiSave(){
+  const u=me();
+  let k=kpiFor(u.id);
+  if(!k){ k={id:uid('k'),repId:u.id,week:WK,role:u.role}; STATE.kpis.push(k); }
+  const fields=u.role==='setter'?['profiles','firstMsgs','followUps','forms']:['callsTaken','closes','revenue','commission'];
+  fields.forEach(f=>{ const el=document.getElementById('kpi_'+f); k[f]=Math.max(0,parseInt(el&&el.value||'0',10)||0); });
+  db.save(); sbPersist('kpis',k); closeModal(); toast('Week updated'); render();
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]'); if(!t) return;
+  if(t.dataset.action==='kpi-week') modalKpi();
+  else if(t.dataset.action==='kpi-save') kpiSave();
+});
+
+/* ---------- auth (overrides the local demo login) ---------- */
+function doLogin(){
+  if(!window.SB_ON) return localDoLogin();
+  const email=document.getElementById('liEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('liPin').value;
+  const err=document.getElementById('liErr');
+  if(!email||!pass){ err.textContent='Email and password required.'; return; }
+  err.textContent='';
+  const btn=document.getElementById('liBtn'); btn.disabled=true; btn.textContent='Signing in…';
+  sb.auth.signInWithPassword({email,password:pass}).then(async res=>{
+    btn.disabled=false; btn.textContent='Enter the system';
+    if(res.error){ err.textContent=res.error.message; return; }
+    await sbLoadAll(res.data.user.id);
+    if(!me()){ err.textContent='Signed in, but no team profile/role found for this account.'; return; }
+    mountApp();
+  }).catch(e=>{ btn.disabled=false; btn.textContent='Enter the system'; err.textContent='Could not reach the server.'; });
+}
+function logout(){
+  if(!window.SB_ON) return localLogout();
+  sb.auth.signOut().finally(()=>{
+    STATE.session=null;
+    document.getElementById('shell').classList.remove('on');
+    document.getElementById('login').style.display='flex';
+    document.getElementById('liPin').value='';
+  });
+}
+
+/* ---------- supabase boot ---------- */
+function sbLoginUI(){
+  const foot=document.querySelector('.login-foot'); if(foot) foot.style.display='none';
+  const pin=document.getElementById('liPin');
+  if(pin){ pin.placeholder='Your CRM password'; pin.setAttribute('type','password'); const lab=pin.parentElement&&pin.parentElement.querySelector('label'); if(lab) lab.textContent='Password'; }
+  const em=document.getElementById('liEmail'); if(em) em.placeholder='you@yourdomain.co.uk';
+  const sub=document.querySelector('.login-top p'); if(sub) sub.textContent='Sign in with your Shevlin CRM account — one login across the system.';
+}
+function loadSbLib(){
+  return new Promise(resolve=>{
+    if(window.supabase) return resolve(true);
+    let done=false; const finish=v=>{ if(!done){ done=true; resolve(v); } };
+    // it may still be loading from the head tag — poll briefly first
+    let waited=0; const poll=setInterval(()=>{ if(window.supabase){ clearInterval(poll); finish(true); } else if((waited+=150)>=3000){ clearInterval(poll); tryFallback(); } },150);
+    function tryFallback(){
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@supabase/supabase-js@2';
+      s.onload=()=>finish(!!window.supabase);
+      s.onerror=()=>finish(false);
+      document.head.appendChild(s);
+      setTimeout(()=>finish(!!window.supabase),4000);
+    }
+  });
+}
+async function sbInit(){
+  try{
+    sbLoginUI();                                  // relabel first — never look like the demo in live mode
+  }catch(e){}
+  document.getElementById('login').style.display='flex';   // guarantee the login is visible no matter what
+  let ok=false;
+  try{ ok=await loadSbLib(); }catch(e){ ok=false; }
+  const err=document.getElementById('liErr');
+  if(!ok||!window.supabase){ if(err) err.textContent='Couldn\u2019t load the sign-in service. Check your connection and reload.'; return; }
+  try{
+    sb=window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {auth:{storage:cookieStorage,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&session.user){ await sbLoadAll(session.user.id); if(me()){ mountApp(); return; } }
+    if(err) err.textContent='';
+  }catch(e){ if(err) err.textContent='Sign-in service error — reload to try again.'; }
+}
+if(window.SB_ON){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',sbInit); else sbInit(); }
+
+</script>
+</body>
+</html>
